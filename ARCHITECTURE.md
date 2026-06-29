@@ -1,4 +1,4 @@
-# ATLAS PA Agent — Studio-Only Architecture V5
+# ATLAS PA Agent — Studio-Only Architecture V6
 
 ## Overview
 
@@ -20,7 +20,7 @@ This architecture uses **only Copilot Studio + Power Automate** — zero Azure F
 | Knowledge | SharePoint RAG (Knowledge Source) | SCORM content understanding (not primary matching) |
 | SCORM Matching | Hybrid: Flow lists files + Prompt picks match | Reliable file selection from 100+ docs |
 | Automation | Power Automate (2-3 flows) | File handling + document generation |
-| Document Generation | "Populate a Microsoft Word template" (GA connector) | Word doc from content control template |
+| Document Generation | Document Output (Prompt Builder) | Word doc from {{placeholder}} template — requires AI Builder |
 | File Storage | SharePoint Online | Source files (SCORM) + output archive |
 | Delivery | Outlook + Teams | Email with attachment + chat download link |
 
@@ -39,21 +39,21 @@ This architecture uses **only Copilot Studio + Power Automate** — zero Azure F
 
 The JSON string is parsed into individual values only inside the GenerateDoc flow (using Power Automate's "Parse JSON" action).
 
-### Decision 2: "Populate a Microsoft Word template" instead of Document Output
-**Source:** Architecture review — risk reduction
+### Decision 2: Document Output for document generation
+**Source:** Tested and validated — formatting, bullets, line breaks, checkboxes all work
 
-❌ **Old plan:** Document Output (Preview) generates .docx inside a Prompt Builder node  
-✅ **New plan:** Power Automate's "Populate a Microsoft Word template" connector (GA)
+❌ **Rejected:** "Populate a Microsoft Word template" connector — plain text only, no line breaks or bullets in content controls  
+✅ **Chosen:** Document Output (Prompt Builder feature) — replaces `{{placeholders}}` with actual text
 
-**Why:** Document Output is a Preview feature that could be removed. The Word template connector is:
-- **GA (Generally Available)** — stable, not going anywhere
-- **Direct file output** — no `binary()` formula needed to extract bytes
-- **Template in SharePoint** — portable, moves with Solutions, no re-upload bugs
-- **Well-documented** — thousands of production examples
+**Why:**
+- Handles multiline content, bullets (•), checkboxes (☐), sub-headers — all critical for PA documents
+- Output is fully editable (no content control locking)
+- Template uses simple `{{FieldName}}` syntax
+- Tested with complex PA content and passed all formatting tests
 
-The Prompt Builder still extracts 18 fields as JSON. The flow then parses the JSON and maps each field to a Word content control in the template.
+**Requirement:** AI Builder must be enabled in the tenant. ✅ Confirmed available in target environment.
 
-**Template format:** Word Content Controls (Developer tab → Plain Text Content Control), NOT `{{curly braces}}`.
+**Template format:** `{{FieldName}}` double curly braces in a .docx file, NOT Word Content Controls.
 
 ### Decision 3: Hybrid SCORM matching (not Knowledge alone)
 **Source:** CPSAgentKit knowledge constraints
@@ -249,20 +249,20 @@ OUTPUTS
 
 **Edit loop:** Agent parses JSON → modifies requested field → re-serializes → updates bot.paFieldsJSON
 
-### 5. Document Generation (Word Template Connector)
+### 5. Document Generation (Document Output)
 
 | Setting | Value |
 |---------|-------|
-| Connector | "Populate a Microsoft Word template" (GA) |
-| Template | PA_Template_V2.docx (stored in SharePoint) |
-| Template location | SharePoint: ATLAS-PA-Outputs/Templates/ |
-| Placeholder format | Word Content Controls (Plain Text, Developer tab) |
-| Output | .docx file content (direct — no formula needed) |
-| Access | Power Automate flow action |
+| Feature | Document Output (Prompt Builder) |
+| Template | PA_Template_DocOutput.docx |
+| Template location | Uploaded in Prompt Builder settings |
+| Placeholder format | {{FieldName}} (double curly braces, no spaces) |
+| Output | .docx file bytes (via flow) |
+| Requires | AI Builder enabled ✅ |
 
-**Template setup:** Open PA_Template_V2.docx in Word → Developer tab → Plain Text Content Control for each field. Each control's Title/Tag matches the JSON field name (PATitle, CourseReference, etc.).
+**Tested and validated:** Handles bullets (•), checkboxes (☐), line breaks, sub-headers, multiline content. Output is fully editable.
 
-**Template structure:** Same table layout, shading, column widths, and formatting as current PA output — with content controls where dynamic content is injected.
+**Template structure:** Same table layout, shading, column widths as current PA output — with `{{placeholders}}` where content is injected.
 
 ---
 
@@ -291,9 +291,9 @@ OUTPUTS
 
 **Actions:**
 1. Parse JSON → extract 18 individual field values
-2. "Populate a Microsoft Word template" → PA_Template_V2.docx from SharePoint
-   - Map each parsed field to corresponding content control
-   - Direct file output (no binary formula needed)
+2. Run a Prompt → Document Output enabled (PA_Template_DocOutput.docx)
+   - Map each parsed field to corresponding prompt input variable
+   - Extract file bytes: `binary(outputs('Run_a_prompt')?['body/responsev2/predictionOutput/documentOutput/contentBytes'])`
 3. SharePoint → "Create file" (save filled doc to ATLAS-PA-Outputs)
 4. SharePoint → "Create sharing link"
 5. Outlook → "Send email" (attach document to user)
@@ -320,7 +320,7 @@ OUTPUTS
 
 | Retired Component | Replaced By |
 |---|---|
-| Azure Function App (atlas-pa-generator) | Copilot Studio Prompt Node + Word Template Connector |
+| Azure Function App (atlas-pa-generator) | Copilot Studio Prompt Builder + Document Output |
 | Azure OpenAI resource | Built-in GPT-5 in Copilot Studio |
 | Azure Blob Storage (pa-sessions container) | bot.paFieldsJSON variable |
 | GitHub Actions CI/CD pipeline | Not needed (no code) |
@@ -395,11 +395,11 @@ OUTPUTS
 
 | Risk | Likelihood | Mitigation |
 |------|-----------|------------|
-| Multiline content in content controls | Medium | Test in Phase 1; Word preserves formatting within controls |
+| Document Output is Preview feature | Low | Tested and working; Azure build as fallback |
 | Knowledge retrieval non-deterministic | Medium | Hybrid approach: flow+prompt for reliable matching |
 | Large document exceeds payload | Low | 5MB limit; most SOPs are under 1MB |
 | Flow timeout on doc generation | Medium | Return URL first, do email/archive after return step |
-| Content control tag naming mismatch | Low | Document all 18 tag names; verify during template setup |
+| AI Builder not enabled in tenant | Low | ✅ Confirmed available in target environment |
 
 ---
 

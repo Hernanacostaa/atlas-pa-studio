@@ -6,23 +6,24 @@ No Azure Functions. No custom code. No deployments.
 
 Owner: Hernan Acosta (PM, not a developer — needs step-by-step GUI guidance)
 
-## Architecture (V5 — Word Template Connector)
+## Architecture (V6 — Document Output Validated)
 - Copilot Studio agent with Generative Orchestration
 - Knowledge source: SharePoint SCORM library (content understanding, NOT primary matching)
 - Prompt Builder: PA field extraction (GPT-5 Reasoning, 400K context)
-- Document Generation: "Populate a Microsoft Word template" connector (GA, not preview)
-- Template: PA_Template_V2.docx with Word Content Controls (stored in SharePoint)
+- Document Generation: Document Output (Prompt Builder) — tested, handles bullets/line breaks/checkboxes
+- Template: PA_Template_DocOutput.docx with {{placeholder}} syntax
 - State: Single bot-scoped JSON variable `bot.paFieldsJSON` (NOT 18 separate globals)
 - SCORM matching: Hybrid (ListSCORM flow + prompt picks match)
 - Power Automate: 2-3 flows (ExtractText + GenerateDoc + ListSCORM)
 - Preview: Adaptive Cards (not plain text)
 - Delivery: SharePoint archive + email + Teams chat link
 - Everything stays in ONE topic (no topic handoffs — preserves variable scope)
+- Requires AI Builder (✅ confirmed in target environment)
 
 ## Critical Design Decisions
 1. **Single JSON variable** — 18 globals is anti-pattern ("planner narrates success while topic sees blanks")
-2. **Word Template Connector (GA)** — "Populate a Microsoft Word template" replaces Document Output (Preview)
-3. **Template in SharePoint** — portable, no re-upload bugs, moves with Solutions
+2. **Document Output** — tested and validated; handles bullets, line breaks, checkboxes, fully editable output
+3. **Rejected "Populate a Word template"** — plain text controls don't support line breaks/bullets
 4. **Hybrid SCORM** — Knowledge is non-deterministic; flow+prompt gives reliable matching
 5. **GPT-5 Reasoning** — available in our tenant, 400K token context
 6. **Content moderation: Low** — domain training content triggers false positives at default
@@ -53,9 +54,14 @@ SkillsBasedLearningObjectives, DocumentationAndReferences,
 ActivitySteps, Validation, Notes
 
 ## Template Format
-- Word Content Controls (Developer tab → Plain Text Content Control)
-- Each control's Title/Tag matches JSON field name
-- Template stored in SharePoint: ATLAS-PA-Outputs/Templates/PA_Template_V2.docx
+- {{FieldName}} placeholders (double curly braces, no spaces)
+- Template uploaded in Prompt Builder → Document Output settings
+- Requires AI Builder enabled ✅
+
+## Document Output Key Formula (for flow)
+```
+binary(outputs('Run_a_prompt')?['body/responsev2/predictionOutput/documentOutput/contentBytes'])
+```
 
 ## Platform Constraints
 - Agent instructions: 8,000 chars max

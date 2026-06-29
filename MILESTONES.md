@@ -12,18 +12,20 @@
 
 ---
 
-## Phase 1: Prove the Core (Word Template Connector)
+## Phase 1: Prove the Core (Document Output)
 
-> Goal: Confirm "Populate a Microsoft Word template" works with our PA layout and content controls
+> Goal: Confirm Document Output works with PA template formatting, bullets, line breaks
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 1.1 | Create PA_Template_V2.docx with content controls | ✅ | 18 Plain Text Content Controls with correct Title/Tags — done using separate file |
-| 1.2 | Upload template to SharePoint (Templates folder) | ✅ | Uploaded to ATLAS-PA-Outputs/MVP Test/PA_Template_Updated.docx |
-| 1.3 | Test "Populate a Microsoft Word template" with sample data | ✅ | Works — fixed showingPlcHdr bug in template XML, all 18 fields editable in output |
-| 1.4 | Build GenerateDoc flow | ⬜ | Parse JSON → Populate Word template → SharePoint save → email → return URL |
+| 1.1 | Create PA template with {{placeholders}} | ✅ | PA_Template_DocOutput.docx — 17 placeholders, same table/shading format |
+| 1.2 | Upload template to Document Output prompt | ✅ | Tested in target environment |
+| 1.3 | Test with complex PA data (bullets, checkboxes, multiline) | ✅ | Passed all formatting tests — bullets, ☐, line breaks, sub-headers, fully editable |
+| 1.4 | Build GenerateDoc flow | ⬜ | Parse JSON → Run Prompt (Document Output) → extract bytes → SharePoint save → email → return URL |
 
-**Decision Gate:** If 1.3 fails on formatting → evaluate alternatives. If it works → proceed.
+**Decision Gate:** ✅ PASSED — Document Output handles all PA formatting requirements.
+
+**Note:** "Populate a Microsoft Word template" connector was tested and rejected — plain text content controls don't support line breaks or bullets.
 
 ---
 
