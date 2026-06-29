@@ -18,7 +18,7 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 1.1 | Create PA_Template_V2.docx with content controls | ⬜ | 18 Plain Text Content Controls (Developer tab), same table/shading format |
+| 1.1 | Create PA_Template_V2.docx with content controls | ✅ | 18 Plain Text Content Controls with correct Title/Tags — done using separate file |
 | 1.2 | Upload template to SharePoint (Templates folder) | ⬜ | ATLAS-PA-Outputs/Templates/PA_Template_V2.docx |
 | 1.3 | Test "Populate a Microsoft Word template" with sample data | ⬜ | Quick flow: hardcoded values → fill template → verify formatting, multiline content |
 | 1.4 | Build GenerateDoc flow | ⬜ | Parse JSON → Populate Word template → SharePoint save → email → return URL |
