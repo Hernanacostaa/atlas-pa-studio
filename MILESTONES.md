@@ -20,7 +20,7 @@
 |---|-----------|--------|-------|
 | 1.1 | Create PA_Template_V2.docx with content controls | ✅ | 18 Plain Text Content Controls with correct Title/Tags — done using separate file |
 | 1.2 | Upload template to SharePoint (Templates folder) | ✅ | Uploaded to ATLAS-PA-Outputs/MVP Test/PA_Template_Updated.docx |
-| 1.3 | Test "Populate a Microsoft Word template" with sample data | ⬜ | Quick flow: hardcoded values → fill template → verify formatting, multiline content |
+| 1.3 | Test "Populate a Microsoft Word template" with sample data | ✅ | Works — fixed showingPlcHdr bug in template XML, all 18 fields editable in output |
 | 1.4 | Build GenerateDoc flow | ⬜ | Parse JSON → Populate Word template → SharePoint save → email → return URL |
 
 **Decision Gate:** If 1.3 fails on formatting → evaluate alternatives. If it works → proceed.
