@@ -344,6 +344,40 @@ OUTPUTS
 
 ---
 
+## Input Handling
+
+### Supported Input Combinations (Single Prompt, No Loop)
+
+| Input Type | How It Works | Supported? |
+|------------|-------------|------------|
+| Pasted text only | User pastes text → goes straight to extraction prompt | ✅ |
+| One link/file only | ExtractText flow gets content → goes to extraction prompt | ✅ |
+| Text + one SCORM file | Both concatenated → goes to extraction prompt | ✅ |
+| Text + one link/file | ExtractText gets file content, concatenated with pasted text → extraction prompt | ✅ |
+| Multiple files/links | Each file needs separate ExtractText call — requires collection loop (future enhancement) | ⬜ Not yet |
+
+### How Multiple Sources Combine
+
+```
+User provides: pasted text + SharePoint link
+         │
+         ▼
+  [ExtractText flow] ── gets file content from link
+         │
+         ▼
+  [Concatenate] ── "USER CONTENT: [pasted text] --- FILE CONTENT: [extracted text]"
+         │
+         ▼
+  [PA Extraction Prompt] ── synthesizes all sources into one PA
+         │
+         ▼
+  [Single JSON output — 18 fields]
+```
+
+GPT-5 Reasoning (400K token context) handles any reasonable combination of source materials in a single prompt call.
+
+---
+
 ## SCORM Integration (Hybrid Approach)
 
 ### Discovery Layer (Knowledge Source)
