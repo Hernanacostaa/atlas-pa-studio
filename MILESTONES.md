@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 5 |
 | Total Milestones | 22 |
-| Complete | 4/22 (18%) |
+| Complete | 6/22 (27%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 1 complete — GenerateDoc flow validated (June 30, 2026) |
 
@@ -35,8 +35,8 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 2.1 | Create PA extraction prompt in Copilot Studio | ⬜ | GPT-5 Reasoning model, facilitator-level rules, no fabrication, TBD for missing |
-| 2.2 | Define JSON output (18 PA fields in single JSON string) | ⬜ | Output type: JSON. Single string stored in bot.paFieldsJSON |
+| 2.1 | Create PA extraction prompt in Copilot Studio | ✅ | ExtractPA prompt — 1 input (SourceContent), GPT-5 Reasoning, facilitator-level rules, no fabrication, TBD for missing |
+| 2.2 | Define JSON output (17 PA fields in single JSON string) | ✅ | All fields return as flat strings (no nested objects). Validated with sample SOP extraction |
 | 2.3 | Store output in single bot-scoped variable | ⬜ | ~~18 global variables~~ → ONE variable `bot.paFieldsJSON` (anti-pattern fix) |
 | 2.4 | Test extraction quality with real source text | ⬜ | Side-by-side vs Azure build output |
 | 2.5 | Set content moderation to Low | ⬜ | Domain-specific training content may trigger false positives |
