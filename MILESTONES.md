@@ -6,9 +6,9 @@
 |--------|-------|
 | Total Phases | 5 |
 | Total Milestones | 22 |
-| Complete | 0/22 (0%) |
+| Complete | 4/22 (18%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | Research-validated design (V4) |
+| Last Updated | Phase 1 complete — GenerateDoc flow validated (June 30, 2026) |
 
 ---
 
@@ -21,7 +21,7 @@
 | 1.1 | Create PA template with {{placeholders}} | ✅ | PA_Template_DocOutput.docx — 17 placeholders, same table/shading format |
 | 1.2 | Upload template to Document Output prompt | ✅ | Tested in target environment |
 | 1.3 | Test with complex PA data (bullets, checkboxes, multiline) | ✅ | Passed all formatting tests — bullets, ☐, line breaks, sub-headers, fully editable |
-| 1.4 | Build GenerateDoc flow | ⬜ | Parse JSON → Run Prompt (Document Output) → extract bytes → SharePoint save → email → return URL |
+| 1.4 | Build GenerateDoc flow | ✅ | ATLAS-PA-GenerateDoc: Parse JSON → Run GeneratePA prompt (Document Output) → base64ToBinary → SharePoint save → sharing link → email w/ attachment → return URL. Expression: `base64ToBinary(body('Run_a_prompt')?['responsev2']?['predictionOutput']?['documentOutput']?['contentBytes'])` |
 
 **Decision Gate:** ✅ PASSED — Document Output handles all PA formatting requirements.
 
