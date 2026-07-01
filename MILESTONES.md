@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 5 |
 | Total Milestones | 22 |
-| Complete | 8/22 (36%) |
+| Complete | 15/22 (68%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 1 complete — GenerateDoc flow validated (June 30, 2026) |
 
@@ -37,7 +37,7 @@
 |---|-----------|--------|-------|
 | 2.1 | Create PA extraction prompt in Copilot Studio | ✅ | ExtractPA prompt — 1 input (SourceContent), GPT-5 Reasoning, facilitator-level rules, no fabrication, TBD for missing |
 | 2.2 | Define JSON output (17 PA fields in single JSON string) | ✅ | All fields return as flat strings (no nested objects). Validated with sample SOP extraction |
-| 2.3 | Store output in single bot-scoped variable | ⏳ | Wiring step — happens in Phase 3 when building Create PA topic |
+| 2.3 | Store output in single bot-scoped variable | ✅ | paFieldsJSON (String) extracted from ExtractPAOutput.text via Set Variable node |
 | 2.4 | Test extraction quality with real source text | ✅ | Tested with clean SOP and messy email draft — both produced accurate, complete JSON |
 | 2.5 | Set content moderation to Low | ✅ | Already set to Low in Copilot Studio settings |
 
@@ -49,13 +49,13 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 3.1 | Build Create PA topic with content source question | ⬜ | User / SCORM / Mixed options |
-| 3.2 | Wire text extraction flow (SharePoint file → plain text) | ⬜ | ExtractText flow for links and SCORM files. For user files: pass directly to prompt (GPT reads docs natively) |
-| 3.3 | Wire extraction prompt into topic | ⬜ | Call Action → prompt node → Set Variable (bot.paFieldsJSON) |
-| 3.4 | Build preview display using Adaptive Card | ⬜ | ~~Plain text message~~ → Adaptive Card with structured field layout |
-| 3.5 | Build edit loop (single topic, slot filling) | ⬜ | "Change Duration to 2 hours" → parse JSON → update field → re-serialize → re-display card |
-| 3.6 | Wire GenerateDoc flow into topic | ⬜ | Pass bot.paFieldsJSON → flow → return download link |
-| 3.7 | Delivery message with download link | ⬜ | "Your PA has been generated and emailed" |
+| 3.1 | Build Create PA topic with content source question | ✅ | Trigger + welcome message + Question (SourceContent) |
+| 3.2 | Wire text extraction flow (SharePoint file → plain text) | ⏳ | Deferred — GPT reads pasted text natively; file/link extraction is Phase 4 enhancement |
+| 3.3 | Wire extraction prompt into topic | ✅ | ExtractPA → ExtractPAOutput (Record) → Set Variable paFieldsJSON = .text (String) |
+| 3.4 | Build preview display using Adaptive Card | ✅ | Text preview of paFieldsJSON with Generate/Edit choice (Adaptive Card upgrade later) |
+| 3.5 | Build edit loop (single topic, slot filling) | ✅ | EditPA prompt updates JSON → Set Variable overwrites paFieldsJSON → Go to step loops back to preview |
+| 3.6 | Wire GenerateDoc flow into topic | ✅ | GeneratePA flow called via Add a tool → paFieldsJSON input → downloadURL output |
+| 3.7 | Delivery message with download link | ✅ | Success message + downloadURL + End conversation |
 
 **Important:** Keep everything in ONE topic so variables stay in scope throughout the pipeline.
 
