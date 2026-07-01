@@ -8,7 +8,7 @@
 | Total Milestones | 22 |
 | Complete | 15/22 (68%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | Phase 1 complete — GenerateDoc flow validated (June 30, 2026) |
+| Last Updated | Phase 3 complete — full end-to-end pipeline working (July 1, 2026) |
 
 ---
 
