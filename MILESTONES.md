@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 5 |
 | Total Milestones | 22 |
-| Complete | 15/22 (68%) |
+| Complete | 16/22 (73%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 3 complete — full end-to-end pipeline working (July 1, 2026) |
 
@@ -67,10 +67,10 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 4.1 | Add Knowledge source (SharePoint SCORM folder) | ⬜ | /teams/COILearning/Agents/Course Analysis Reports V3 |
-| 4.2 | Build ListSCORM flow (returns all filenames) | ⬜ | Flow → SharePoint "List folder" → Select filenames → return array |
-| 4.3 | Build SCORM matching prompt (file list + description → best match) | ⬜ | Deterministic: prompt receives full file list, picks best match by name |
-| 4.4 | Wire ExtractText flow for matched SCORM file | ⬜ | Get full document text for PA extraction |
+| 4.1 | Add Knowledge source (SharePoint SCORM folder) | ✅ | Knowledge source searches SCORM courses natively — found 5 GPU courses with IDs, URLs, details |
+| 4.2 | Build ListSCORM flow (returns all filenames) | ⏭️ | **Skipped** — Knowledge source handles course search natively, no flow needed |
+| 4.3 | Build SCORM matching prompt (file list + description → best match) | ⏭️ | **Skipped** — Agent orchestrator matches courses from Knowledge source automatically |
+| 4.4 | Wire ExtractText flow for matched SCORM file | ⏳ | Agent reads SCORM content via Knowledge but bypasses Create PA topic flow — needs agent instructions fix |
 | 4.5 | Build mixed content path (SCORM + user text combined) | ⬜ | Concatenate both sources before extraction |
 
 **Note:** Knowledge source is for content understanding/supplementary search. Reliable file matching uses Flow + Prompt (hybrid approach).
