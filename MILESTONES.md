@@ -5,10 +5,10 @@
 | Metric | Value |
 |--------|-------|
 | Total Phases | 6 |
-| Total Milestones | 26 |
-| Complete | 26/26 (100%) |
+| Total Milestones | 29 |
+| Complete | 26/29 (90%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | **ALL PHASES COMPLETE** — 26/26 (100%) (July 6, 2026) |
+| Last Updated | 6.6-6.8 added: FormatPreview for cross-channel display (July 6, 2026) |
 
 ---
 
@@ -113,6 +113,9 @@
 | 6.3 | Test orchestrator instruction change: "include ALL procedural steps" | ✅ | Updated instructions with checklist framing: "each step is one verifiable action in the order the documentation describes it" |
 | 6.4 | Test with a high-step-count course (15+ steps) | ✅ | GPU baseboard course retested — steps now match documentation order |
 | 6.5 | Validate final ActivitySteps depth is production-acceptable | ✅ | Hernan confirmed: "It is perfect. all good." |
+| 6.6 | Build FormatPreview prompt for readable preview display | ⬜ | Replace raw JSON preview with formatted table — must render across Studio, Teams, and M365 Copilot |
+| 6.7 | Wire FormatPreview into Create PA topic | ⬜ | Add after Set Variable (paFieldsJSON), update preview Message node to show formatted output |
+| 6.8 | Test preview rendering across channels | ⬜ | Verify preview looks clean in Studio test chat, Teams, and M365 Copilot |
 
 ---
 
