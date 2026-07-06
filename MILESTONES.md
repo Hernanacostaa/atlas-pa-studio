@@ -6,9 +6,9 @@
 |--------|-------|
 | Total Phases | 6 |
 | Total Milestones | 26 |
-| Complete | 21/26 (81%) |
+| Complete | 26/26 (100%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | Phase 6 (Quality Unit Testing) added — 13 new milestones (July 6, 2026) |
+| Last Updated | **ALL PHASES COMPLETE** — 26/26 (100%) (July 6, 2026) |
 
 ---
 
@@ -108,11 +108,11 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 6.1 | Baseline: check what orchestrator currently passes to SourceContent | ⬜ | Add a debug message in topic to show raw SourceContent length/preview before extraction |
-| 6.2 | Compare SCORM source doc vs extracted ActivitySteps | ⬜ | Open original .doc, count steps — compare against PA output. Are steps missing or merged? |
-| 6.3 | Test orchestrator instruction change: "include ALL procedural steps" | ⬜ | Update agent instructions to emphasize passing full step-by-step detail, not summaries |
-| 6.4 | Test with a high-step-count course (15+ steps) | ⬜ | Verify no steps dropped, sub-steps preserved, warnings/notes included |
-| 6.5 | Validate final ActivitySteps depth is production-acceptable | ⬜ | Hernan reviews output and confirms steps are detailed enough for hands-on training |
+| 6.1 | Baseline: check what orchestrator currently passes to SourceContent | ✅ | Identified issue: orchestrator was over-summarizing, ActivitySteps too generic |
+| 6.2 | Compare SCORM source doc vs extracted ActivitySteps | ✅ | Steps were merged/summarized — not matching source procedure order |
+| 6.3 | Test orchestrator instruction change: "include ALL procedural steps" | ✅ | Updated instructions with checklist framing: "each step is one verifiable action in the order the documentation describes it" |
+| 6.4 | Test with a high-step-count course (15+ steps) | ✅ | GPU baseboard course retested — steps now match documentation order |
+| 6.5 | Validate final ActivitySteps depth is production-acceptable | ✅ | Hernan confirmed: "It is perfect. all good." |
 
 ---
 
