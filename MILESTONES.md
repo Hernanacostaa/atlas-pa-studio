@@ -5,8 +5,8 @@
 | Metric | Value |
 |--------|-------|
 | Total Phases | 6 |
-| Total Milestones | 34 |
-| Complete | 21/34 (62%) |
+| Total Milestones | 26 |
+| Complete | 21/26 (81%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 6 (Quality Unit Testing) added — 13 new milestones (July 6, 2026) |
 
@@ -102,37 +102,17 @@
 
 ---
 
-## Phase 6: Quality Unit Testing
+## Phase 6: ActivitySteps Depth Testing
 
-> Goal: Validate extraction accuracy, output consistency, and content fidelity across diverse source materials
-
-### 6A: Extraction Accuracy (Are the 17 fields correct and complete?)
+> Goal: Ensure the orchestrator passes enough source detail to produce rich, granular ActivitySteps — not summarized/generic ones
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 6.1 | Test with detailed SOP (all fields present in source) | ⬜ | Verify all 17 fields populated correctly — no TBDs where data exists |
-| 6.2 | Test with sparse source (minimal info provided) | ⬜ | Verify TBD used for missing fields — no hallucinated data |
-| 6.3 | Test with conflicting info (duration mentioned twice, different values) | ⬜ | Verify extraction picks the correct/latest value |
-| 6.4 | Test field separation (PPE vs Tools vs Equipment correctly categorized) | ⬜ | Common error: tools listed as PPE or vice versa |
-| 6.5 | Test multi-step procedures (15+ steps) | ⬜ | Verify no steps are dropped or merged |
-
-### 6B: Consistency (Same input → same quality every time)
-
-| # | Milestone | Status | Notes |
-|---|-----------|--------|-------|
-| 6.6 | Run same source 3x — compare outputs | ⬜ | Same SCORM course, 3 separate conversations — fields should match |
-| 6.7 | Run same paste content 3x — compare outputs | ⬜ | Same pasted text, 3 runs — structure and detail level should be consistent |
-| 6.8 | Run same edit request 3x — compare results | ⬜ | Same "change duration to 45 min" edit — verify identical output |
-
-### 6C: Content Fidelity (No hallucination, no missing details)
-
-| # | Milestone | Status | Notes |
-|---|-----------|--------|-------|
-| 6.9 | Verify ActivitySteps match source exactly (no invented steps) | ⬜ | Cross-reference extracted steps against original source content |
-| 6.10 | Verify PPE/Tools not fabricated | ⬜ | If source says "ESD strap" — output should not add "safety glasses" unless source mentions them |
-| 6.11 | Verify TargetAudience reflects source (not generic boilerplate) | ⬜ | Should match the actual audience described, not default "CO+I technicians" |
-| 6.12 | Verify DocumentationAndReferences preserved from source | ⬜ | All source references captured — none added, none dropped |
-| 6.13 | Verify Duration/Authors/CourseReference are exact (not paraphrased) | ⬜ | Factual fields must be verbatim from source |
+| 6.1 | Baseline: check what orchestrator currently passes to SourceContent | ⬜ | Add a debug message in topic to show raw SourceContent length/preview before extraction |
+| 6.2 | Compare SCORM source doc vs extracted ActivitySteps | ⬜ | Open original .doc, count steps — compare against PA output. Are steps missing or merged? |
+| 6.3 | Test orchestrator instruction change: "include ALL procedural steps" | ⬜ | Update agent instructions to emphasize passing full step-by-step detail, not summaries |
+| 6.4 | Test with a high-step-count course (15+ steps) | ⬜ | Verify no steps dropped, sub-steps preserved, warnings/notes included |
+| 6.5 | Validate final ActivitySteps depth is production-acceptable | ⬜ | Hernan reviews output and confirms steps are detailed enough for hands-on training |
 
 ---
 
