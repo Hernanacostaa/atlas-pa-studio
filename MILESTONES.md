@@ -86,7 +86,7 @@
 | ~~5.1~~ | ~~Side-by-side comparison: Studio vs Azure output~~ | ⏭️ | **Removed** — Studio is the only system; quality validated across 4 test paths |
 | 5.2 | Test with 3+ real source documents | ✅ | Passed: power supply replacement, server decommissioning, fiber optic cable installation — all generated successfully |
 | 5.3 | Test SCORM path end-to-end | ✅ | Test 1 passed: GPU baseboard course → search → pick → extract → preview → generate → email + download link |
-| 5.4 | Disable Azure Function (or keep as fallback) | ⬜ | Decision: retire or archive |
+| 5.4 | Disable Azure Function (or keep as fallback) | ✅ | **Decision: Keep as-is** — Azure Function left running as fallback; Studio is primary system |
 
 ---
 
