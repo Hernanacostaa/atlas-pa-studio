@@ -6,9 +6,9 @@
 |--------|-------|
 | Total Phases | 5 |
 | Total Milestones | 22 |
-| Complete | 17/22 (77%) |
+| Complete | 19/22 (86%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | Phase 3 complete — full end-to-end pipeline working (July 1, 2026) |
+| Last Updated | Phase 4 complete, Phase 5 in progress — 3/3 tests passed (July 6, 2026) |
 
 ---
 
@@ -71,7 +71,7 @@
 | 4.2 | Build ListSCORM flow (returns all filenames) | ⏭️ | **Skipped** — Knowledge source handles course search natively, no flow needed |
 | 4.3 | Build SCORM matching prompt (file list + description → best match) | ⏭️ | **Skipped** — Agent orchestrator matches courses from Knowledge source automatically |
 | 4.4 | Wire SCORM content into Create PA topic | ✅ | SourceContent accepts input from orchestrator; Condition node skips question when pre-filled; both SCORM and manual paths tested end-to-end |
-| 4.5 | Build mixed content path (SCORM + user text combined) | ⬜ | Concatenate both sources before extraction |
+| 4.5 | Build mixed content path (SCORM + user text combined) | ✅ | Topic has "additional content" question with Yes/No branch; Yes concatenates via `SourceContent & " ADDITIONAL NOTES: " & AdditionalContent`; No skips straight to ExtractPA |
 
 **Note:** Knowledge source is for content understanding/supplementary search. Reliable file matching uses Flow + Prompt (hybrid approach).
 
@@ -85,7 +85,7 @@
 |---|-----------|--------|-------|
 | 5.1 | Side-by-side comparison: Studio vs Azure output | ⬜ | Same source → compare PA quality |
 | 5.2 | Test with 3+ real source documents | ⬜ | SOP, MOP, Training Plan |
-| 5.3 | Test SCORM path end-to-end | ⬜ | SCORM search → extract → preview → generate |
+| 5.3 | Test SCORM path end-to-end | ✅ | Test 1 passed: GPU baseboard course → search → pick → extract → preview → generate → email + download link |
 | 5.4 | Disable Azure Function (or keep as fallback) | ⬜ | Decision: retire or archive |
 
 ---
@@ -95,7 +95,7 @@
 | ID | Description | Status | Impact |
 |----|------------|--------|--------|
 | ~~B1~~ | ~~Document Output is "preview" feature~~ | ✅ Resolved | Switched to GA "Populate a Microsoft Word template" connector |
-| B2 | SharePoint SCORM folder permissions in Knowledge | ⚠️ Open | May need site access granted |
+| ~~B2~~ | ~~SharePoint SCORM folder permissions in Knowledge~~ | ✅ Resolved | Knowledge source reads SCORM .doc files successfully |
 | B3 | 7MB file limit without M365 Copilot license | ⚠️ Open | Large SCORM files silently ignored by Knowledge source |
 | B4 | Cloud flow timeout is 100 seconds | ℹ️ Known | Place email/archive AFTER return step in GenerateDoc flow |
 | B5 | Connector payload limit 5MB (public cloud) | ℹ️ Known | Most SOPs under 1MB; monitor for large docs |
