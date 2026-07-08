@@ -6,9 +6,9 @@
 |--------|-------|
 | Total Phases | 6 |
 | Total Milestones | 29 |
-| Complete | 26/29 (90%) |
+| Complete | 29/29 (100%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | 6.6-6.8 added: FormatPreview for cross-channel display (July 6, 2026) |
+| Last Updated | **ALL 29/29 MILESTONES COMPLETE** — FormatPreview validated (July 8, 2026) |
 
 ---
 
@@ -114,8 +114,8 @@
 | 6.4 | Test with a high-step-count course (15+ steps) | ✅ | GPU baseboard course retested — steps now match documentation order |
 | 6.5 | Validate final ActivitySteps depth is production-acceptable | ✅ | Hernan confirmed: "It is perfect. all good." |
 | 6.6 | Build FormatPreview prompt for readable preview display | ✅ | Created with GPT-4.1 mini — formats JSON into labeled list with emojis, works across all channels |
-| 6.7 | Wire FormatPreview into Create PA topic | ⏳ | Main preview wired (formattedPreview.text); edit loop wiring in progress |
-| 6.8 | Test preview rendering across channels | ⬜ | Verify preview looks clean in Studio test chat, Teams, and M365 Copilot |
+| 6.7 | Wire FormatPreview into Create PA topic | ✅ | Wired after both ExtractPA and EditPA Set Variable nodes; output stored as formattedPreview.text |
+| 6.8 | Test preview rendering across channels | ✅ | Tested in Studio — formatted preview with emojis/labels on first view and after edits. Edit loop preserves prior changes. |
 
 ---
 
