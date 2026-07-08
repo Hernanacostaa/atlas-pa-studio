@@ -19,7 +19,8 @@ Takes source documents (SOPs, MOPs, Training Plans, SCORM Course Analysis Report
 ## Documentation
 
 - [Architecture](ARCHITECTURE.md) — Full system design and component details
-- [Milestones](MILESTONES.md) — Build tracker (5 phases, 20 milestones)
+- [Milestones](MILESTONES.md) — Build tracker (6 phases, 29 milestones)
+- [Implementation Dashboard](https://hernanacostaa.github.io/atlas-pa-studio/) — Interactive GitHub Pages status view
 
 ## Status
 
