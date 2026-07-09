@@ -4,11 +4,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Phases | 6 |
-| Total Milestones | 29 |
-| Complete | 29/29 (100%) |
+| Total Phases | 7 |
+| Total Milestones | 40 |
+| Complete | 29/40 (73%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | **ALL 29/29 MILESTONES COMPLETE** — FormatPreview validated (July 8, 2026) |
+| Last Updated | Phase 7 added: Content Quality & Conversation Control — 11 milestones (July 9, 2026) |
 
 ---
 
@@ -116,6 +116,49 @@
 | 6.6 | Build FormatPreview prompt for readable preview display | ✅ | Created with GPT-4.1 mini — formats JSON into labeled list with emojis, works across all channels |
 | 6.7 | Wire FormatPreview into Create PA topic | ✅ | Wired after both ExtractPA and EditPA Set Variable nodes; output stored as formattedPreview.text |
 | 6.8 | Test preview rendering across channels | ✅ | Tested in Studio — formatted preview with emojis/labels on first view and after edits. Edit loop preserves prior changes. |
+
+---
+
+## Phase 7: Content Quality & Conversation Control
+
+> Goal: Fix extraction quality, prevent orchestrator from going rogue, and close conversations cleanly. Based on user testing feedback (July 8-9, 2026).
+
+### Issues Identified in Testing
+
+| # | Issue | Impact |
+|---|-------|--------|
+| I1 | "I don't have any" generates all-TBD PA | User gets useless output instead of redirection |
+| I2 | Orchestrator bypasses topic, calls prompts directly | Unpredictable behavior, field-by-field prompting |
+| I3 | Content quality poor — generic steps, boilerplate, invented actions | PAs not usable for real training |
+| I4 | Bad conversation closure — escalation messages, "did that answer" loops | Confusing UX |
+| I5 | SystemError on Edit in some cases | Breaks edit loop |
+| I6 | Duplicate questions (orchestrator + topic both ask) | Confusing UX |
+
+### 7A: Front-End Funnel (Deterministic User Guidance)
+
+| # | Milestone | Status | Notes |
+|---|-----------|--------|-------|
+| 7.1 | Add content source question: "How will you provide content?" → SCORM / Paste / Link | ⬜ | First node after trigger — determines path before orchestrator can deviate |
+| 7.2 | Add input validation — reject empty/nonsense input, redirect user | ⬜ | "I don't have any" should get "Please come back when you have source content" |
+| 7.3 | Wire SCORM search path through topic (not orchestrator) | ⬜ | Topic controls the search → select → extract flow end-to-end |
+| 7.4 | Test all three paths through the funnel | ⬜ | SCORM, paste, link — all deterministic |
+
+### 7B: Extraction Quality (Port Azure Function Prompt)
+
+| # | Milestone | Status | Notes |
+|---|-----------|--------|-------|
+| 7.5 | Rewrite ExtractPA with proven Azure Function prompt rules | ⬜ | Port field-by-field rules from function_app.py lines 1254-1320 |
+| 7.6 | Key quality rules: no fabrication per field, facilitator-level ActivitySteps (10-12), bold WhatIsNeeded sub-sections | ⬜ | Match Azure Function output quality |
+| 7.7 | Test extraction with 3 different source types | ⬜ | SCORM course, pasted SOP, link content |
+| 7.8 | Validate content quality is production-acceptable | ⬜ | Hernan reviews and confirms fields have correct depth and placement |
+
+### 7C: Conversation Cleanup
+
+| # | Milestone | Status | Notes |
+|---|-----------|--------|-------|
+| 7.9 | Add proper end node — clear closing, no "did that answer" loop | ⬜ | Topic ends with clean message + option to create another PA |
+| 7.10 | Handle edge cases — empty input, greetings mid-flow, nonsense text | ⬜ | Graceful redirects instead of processing garbage |
+| 7.11 | Test conversation recovery and multi-PA sessions | ⬜ | Complete one PA → start another in same session |
 
 ---
 
