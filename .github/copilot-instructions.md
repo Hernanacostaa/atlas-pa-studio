@@ -1,44 +1,51 @@
 # ATLAS PA Studio — Project Instructions
 
 ## Project Context
-This is the ATLAS PA Agent built entirely in Copilot Studio + Power Automate.
-No Azure Functions. No custom code. No deployments.
+This repo documents PA Studio, a Practical Activity Worksheet generator built entirely in Copilot Studio + Power Automate.
+Zero Azure Functions. Zero custom code. Zero Azure services in the active runtime architecture.
 
 Owner: Hernan Acosta (PM, not a developer — needs step-by-step GUI guidance)
 
-## Architecture (V6 — Document Output Validated)
-- Copilot Studio agent with Generative Orchestration
-- Knowledge source: SharePoint SCORM library (content understanding, NOT primary matching)
-- Prompt Builder: PA field extraction (GPT-5 Reasoning, 400K context)
-- Document Generation: Document Output (Prompt Builder) — tested, handles bullets/line breaks/checkboxes
-- Template: PA_Template_DocOutput.docx with {{placeholder}} syntax
-- State: Single bot-scoped JSON variable `bot.paFieldsJSON` (NOT 18 separate globals)
-- SCORM matching: Hybrid (ListSCORM flow + prompt picks match)
-- Power Automate: 2-3 flows (ExtractText + GenerateDoc + ListSCORM)
-- Preview: Adaptive Cards (not plain text)
-- Delivery: SharePoint archive + email + Teams chat link
-- Everything stays in ONE topic (no topic handoffs — preserves variable scope)
-- Requires AI Builder (✅ confirmed in target environment)
+## Architecture (V7 — Constrained Orchestrator, July 25 2026)
+- Copilot Studio agent with a constrained orchestrator
+- Channels: Teams, M365 Copilot, and Copilot Studio test chat
+- Knowledge source: SharePoint SCORM library (`/Agents/Course Analysis Reports V3`, ~300 `.doc` files)
+- Orchestrator handles SCORM Knowledge search and URL reading through Work IQ
+- All prompts and flows are locked to **Only when referenced by topics or agents**
+- The orchestrator cannot call prompts or flows directly; it must route through the **Create PA** topic
+- Topic input: `SourceContent` from the orchestrator, stored internally as `Topic.SearchQuery`
+- Create PA topic handles extraction, preview, editing, document generation, delivery, and clean ending
+- `ExtractPA` prompt: GPT-5 Reasoning, 17-field extraction, field-by-field rules ported from the retired Azure Function, no fabrication
+- `EditPA` prompt: inputs `CurrentJSON` + `EditRequest`, returns updated JSON
+- `FormatPreview` prompt: GPT-4.1 mini, returns emoji-labeled readable text
+- `GeneratePA` prompt: 17 inputs, Document Output enabled, template uploaded
+- Power Automate: `ATLAS-PA-GenerateDoc` flow is active; `SearchSCORM` exists only as a backup
+- Delivery: SharePoint archive + sharing link + email
+- End of Conversation offers a clean "create another?" finish
 
 ## Critical Design Decisions
-1. **Single JSON variable** — 18 globals is anti-pattern ("planner narrates success while topic sees blanks")
-2. **Document Output** — tested and validated; handles bullets, line breaks, checkboxes, fully editable output
-3. **Rejected "Populate a Word template"** — plain text controls don't support line breaks/bullets
-4. **Hybrid SCORM** — Knowledge is non-deterministic; flow+prompt gives reliable matching
-5. **GPT-5 Reasoning** — available in our tenant, 400K token context
-6. **Content moderation: Low** — domain training content triggers false positives at default
-7. **Flow timeout: 100s** — place email/archive AFTER return step
+1. **Tool lockdown** — the Create PA topic is the only approved execution path for prompts and flows
+2. **Pass raw content** — never summarize, shorten, or reorganize content before handing it to the topic
+3. **Single deterministic topic** — extraction → preview → edit → generate → deliver
+4. **FormatPreview** — current preview is emoji-labeled chat text
+5. **Input validation** — on the manual path, pasted content shorter than 50 characters is rejected
+6. **SearchSCORM is backup only** — current SCORM runtime path uses Knowledge search in the orchestrator
+7. **No direct SharePoint HTTP** — DLP blocks that pattern, so stay inside approved tools and connectors
 
 ## Key Files
-- ARCHITECTURE.md — Full system design (V4, research-validated)
-- MILESTONES.md — Build tracker (5 phases, 22 milestones)
+- ARCHITECTURE.md — Full current architecture and runtime flow
+- USER_GUIDE.md — Current user experience
+- SCORM_INTEGRATION.md — Blockers, mitigations, and why the constrained orchestrator exists
+- MILESTONES.md — Build tracker (7 phases, 46 milestones, 100%)
+- README.md — Project overview and current status
 
 ## Conventions
-- Always push docs to GitHub immediately after creating/updating
+- Always push docs to GitHub immediately after creating or updating them
 - Update MILESTONES.md after completing any milestone
 - Use plain language — no jargon without explanation
 - Test before declaring something complete
 - When giving Copilot Studio instructions, specify exact clicks and selections
+- Keep documentation aligned to the live Copilot Studio build, not retired experiments
 
 ## SharePoint Locations
 - SCORM Library: https://microsoft.sharepoint.com/teams/COILearning
@@ -46,26 +53,39 @@ Owner: Hernan Acosta (PM, not a developer — needs step-by-step GUI guidance)
 - PA Outputs: https://microsoft.sharepoint.com/sites/86dae876-a7f6-43da-824a-83a2c42644bb
   Folder: /Shared Documents/ATLAS-PA-Outputs
 
-## PA Fields (18 total — stored as single JSON string)
-PA_Title, PA_Subtitle, PA_DocumentLabel, CourseReference, Authors,
-Contributors, LastUpdated, TargetAudience, Duration, ActivityDescription,
-TrainerGuidelines, DesiredLearningOutcome, WhatIsNeeded,
-SkillsBasedLearningObjectives, DocumentationAndReferences,
-ActivitySteps, Validation, Notes
+## PA Data Model
+**17 extracted fields**
+PA_Title, PA_Subtitle, CourseReference, Authors,
+Contributors, LastUpdated, TargetAudience, Duration,
+ActivityDescription, TrainerGuidelines, DesiredLearningOutcome,
+WhatIsNeeded, SkillsBasedLearningObjectives,
+DocumentationAndReferences, ActivitySteps, Validation, Notes
 
-## Template Format
-- {{FieldName}} placeholders (double curly braces, no spaces)
-- Template uploaded in Prompt Builder → Document Output settings
-- Requires AI Builder enabled ✅
+**Fixed label**
+- `PA_DocumentLabel` = `Practical Activity Worksheet`
 
-## Document Output Key Formula (for flow)
+## Proven Formulas
+
+### Document Output file bytes
 ```
-binary(outputs('Run_a_prompt')?['body/responsev2/predictionOutput/documentOutput/contentBytes'])
+base64ToBinary(body('Run_a_prompt')?['responsev2']?['predictionOutput']?['documentOutput']?['contentBytes'])
+```
+
+### Additional content concatenation
+```
+Topic.SearchQuery & " ADDITIONAL NOTES: " & Topic.AdditionalContent
 ```
 
 ## Platform Constraints
-- Agent instructions: 8,000 chars max
-- Conversation history: last 10 turns visible to orchestrator
+- Agent instructions: 8,000 characters max
+- Conversation history: last 10 turns visible to the orchestrator
 - Cloud flow timeout: 100 seconds
-- Connector payload: 5MB (public cloud)
-- Knowledge files: 7MB without M365 Copilot license (silently ignored above)
+- Connector payload: 5MB
+- Knowledge files: 7MB without M365 Copilot license (silently ignored above that size)
+- Knowledge files per agent: 1,000
+- DLP blocks HTTP requests to SharePoint
+
+## Guidance for Future Updates
+- Describe the preview as emoji-labeled chat text
+- Treat SearchSCORM as backup-only unless the runtime architecture changes
+- Keep SCORM_INTEGRATION.md and ARCHITECTURE.md consistent when blockers or mitigations change

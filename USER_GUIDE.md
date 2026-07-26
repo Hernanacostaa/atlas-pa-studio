@@ -1,144 +1,161 @@
-# ATLAS PA Agent — User Guide
+# PA Studio — User Guide
 
 ## What Is This?
 
-The ATLAS PA Agent creates **Practical Activity Worksheets** from your source documents. Just tell the agent what you need in Microsoft Teams, and it generates a formatted Word document — complete with all 18 PA fields filled in.
+PA Studio creates Practical Activity Worksheets from SCORM course content, pasted source material, and document links. It guides you through search, preview, editing, generation, and delivery in one conversation.
+
+You can use PA Studio in:
+- Microsoft Teams
+- Microsoft 365 Copilot
+- Copilot Studio test chat
+
+---
+
+## Welcome Message
+
+```text
+Hello, I'm PA Studio! I create Practical Activity Worksheets.
+
+To get started, you can:
+• Tell me a course name or topic to search
+• Paste your source content directly
+• Share a link to a document
+
+What would you like to do?
+```
 
 ---
 
 ## How to Use
 
-### Step 1: Start a Conversation
+### Step 1: Start the request
 
-Open **Microsoft Teams** and find the **ATLAS PA Agent**. Say something like:
+You can begin with any of the following:
+- a course name
+- a topic or keywords
+- pasted source text
+- a public link
+- a SharePoint link
+- more than one link
+- SCORM content plus your own notes
 
-- "Create a PA about generator maintenance"
-- "I need a Practical Activity for CDU installation"
-- "Help me build a PA worksheet"
+If you ask for a PA without giving any content, PA Studio asks:
+> Would you like me to search for a SCORM course, or do you have content to paste/provide a link?
 
-### Step 2: Choose Your Content Source
+### Step 2: Choose or provide the content
 
-The agent will ask how you'd like to provide source content:
+#### Option A: Search the SCORM library
+If you mention a course, topic, or keywords, PA Studio:
+1. searches the SCORM Knowledge library
+2. shows the **top 5 matching courses**
+3. includes the **course name and course ID** for each match
+4. waits for you to choose one
+5. sends the **full selected course content** into the Create PA topic
 
-| Option | When to Use |
-|--------|------------|
-| **Own content** | You have an SOP, MOP, or training document to paste or link |
-| **SCORM library** | You want to use a Course Analysis Report from the library |
-| **Both** | You want to combine SCORM content with your own material |
+#### Option B: Paste your own content
+Paste the source text directly into chat. PA Studio passes that text into the Create PA topic as-is.
 
-### Step 3: Provide Your Content
+#### Option C: Share a link
+Send a public link or a SharePoint link. PA Studio reads the content and passes the full text into the Create PA topic.
 
-Depending on what you chose:
+#### Option D: Combine sources
+PA Studio can also combine:
+- multiple links
+- SCORM content + pasted notes
+- SCORM content + additional instructions
+- pasted text + linked content
 
-- **Own content:** Paste text directly into chat, OR provide a SharePoint link to a document
-- **SCORM library:** Describe the topic (e.g., "CDU introduction" or "generator maintenance") and the agent finds the matching course document
-- **Both:** Describe the SCORM topic AND paste/link your additional content
+### Step 3: Input validation
 
-### Supported Input Combinations
+If the topic needs manual pasted content and the message is too short, PA Studio asks you to provide more detail before it continues.
 
-| What You Provide | Works? | Notes |
-|-----------------|--------|-------|
-| Pasted text only | ✅ | Paste your SOP/MOP text directly into chat |
-| One SharePoint link | ✅ | Agent extracts text from the document |
-| Pasted text + one link | ✅ | Both sources combined into one PA |
-| SCORM topic description | ✅ | Agent finds matching Course Analysis Report |
-| SCORM + pasted text | ✅ | Combines SCORM content with your material |
-| Multiple files/links | ⬜ Coming soon | Currently supports one file at a time |
+---
 
-### Step 4: Review the Preview
+## Supported Input Patterns
 
-The agent extracts all 18 PA fields and shows you a preview card:
+| What you provide | Supported? | What PA Studio does |
+|------------------|-----------|---------------------|
+| Course name, topic, or keywords | ✅ | Searches SCORM Knowledge, shows top 5, waits for your selection |
+| Pasted text only | ✅ | Sends the text straight to the Create PA topic |
+| Public link | ✅ | Reads the page content and passes it into the topic |
+| SharePoint link | ✅ | Reads the document content and passes it into the topic |
+| Multiple links | ✅ | Combines the content before extraction |
+| SCORM + extra notes | ✅ | Concatenates both sources before extraction |
+| Pasted text + link | ✅ | Combines both sources before extraction |
 
-- **PA Title** — Name of the Practical Activity
-- **Duration** — How long the activity takes
-- **Target Audience** — Who this PA is for
-- **Activity Steps** — The step-by-step procedure
-- **What Is Needed** — PPE, tools, safety guidelines
-- *(and 13 more fields)*
+---
 
-### Step 5: Request Edits (Optional)
+## Preview and Edit Loop
 
-If anything needs changing, just tell the agent:
+After PA Studio extracts the content, it shows a readable preview in the chat.
 
+### What the preview looks like
+
+The preview is **emoji-labeled text**. Typical sections include:
+- 🧾 PA Title
+- ⏱️ Duration
+- 👥 Target Audience
+- 📝 Activity Description
+- 🧰 What Is Needed
+- 🪜 Activity Steps
+- ✅ Validation
+- 📌 Notes
+
+### How to request changes
+
+If you want to revise anything, say it plainly. For example:
 - "Change the Duration to 2 hours"
 - "Update the Target Audience to include Level 2 technicians"
-- "Add steel-toed boots to the Required PPE"
-- "Remove the last activity step"
+- "Add steel-toed boots to What Is Needed"
+- "Rewrite the Activity Steps to be more facilitator focused"
 
-The agent updates the field and shows the updated preview. Repeat until you're satisfied.
+PA Studio applies the edit, rebuilds the preview, and lets you review it again. You can repeat this loop until the preview looks right.
 
-### Step 6: Generate the Document
+### How to generate
 
-When you're happy with the preview, say:
-
+When you are ready, say:
 - "Generate"
 - "Create the document"
 - "Looks good, generate it"
 
-The agent will:
-1. Generate a formatted Word document (.docx)
-2. Save it to SharePoint (ATLAS-PA-Outputs)
-3. Email you a copy with the document attached
-4. Show a download link in chat
+---
+
+## What Happens After You Generate
+
+PA Studio will:
+1. generate the Word document from the approved PA fields
+2. save it to the **ATLAS-PA-Outputs** SharePoint library
+3. create a sharing link
+4. email you a copy
+5. show the download link in the conversation
 
 ---
 
-## The 18 PA Fields
+## Conversation Ending
 
-| # | Field | Description |
-|---|-------|-------------|
-| 1 | PA Title | Name of the Practical Activity |
-| 2 | PA Subtitle | Brief description under the title |
-| 3 | PA Document Label | Always "Practical Activity Worksheet" |
-| 4 | Course Reference | Source document reference number |
-| 5 | Authors | Who created this PA |
-| 6 | Contributors | Additional contributors |
-| 7 | Last Updated | Date of last update |
-| 8 | Target Audience | Who should complete this PA and prerequisites |
-| 9 | Duration | Estimated time to complete |
-| 10 | Activity Description | Overview of what learners will do |
-| 11 | Trainer Guidelines | Instructions for the facilitator |
-| 12 | Desired Learning Outcome | Objectives, training opportunities, task types |
-| 13 | What Is Needed | Safety guidelines, PPE, tooling, equipment |
-| 14 | Skills-Based Learning Objectives | What learners will be able to do after completion |
-| 15 | Documentation & References | Related SOPs, manuals, reference cards |
-| 16 | Activity Steps | Step-by-step procedure with checkboxes |
-| 17 | Validation | Criteria for successful completion |
-| 18 | Notes | Additional information |
+After delivery, PA Studio ends the conversation cleanly and offers a **create another?** option so you can start a new PA without guessing the next step.
 
 ---
 
 ## Tips
 
-- **Be specific** when describing your topic — the more detail you give, the better the extraction
-- **Paste full text** rather than summaries — the agent extracts what it needs
-- **Use the edit loop** — it's faster to tweak fields than to regenerate from scratch
-- **Don't fabricate** — if the agent can't find information in your source, it marks fields as "TBD" rather than making things up
-- **SharePoint links** work best when they point directly to .docx, .pdf, or .pptx files
-
----
-
-## Output
-
-Your generated PA document includes:
-- ✅ Formatted Word document (.docx) with table layout, shading, and borders
-- ✅ All 18 fields filled from your source content
-- ✅ Bullet points, checkboxes (☐), and multi-line content preserved
-- ✅ Fully editable — you can make manual changes after generation
-- ✅ Saved to SharePoint for archiving
-- ✅ Emailed to you as an attachment
+- Use the full source text when possible; raw content works better than summaries
+- Be specific when searching SCORM courses so the top 5 results are more accurate
+- Use the edit loop instead of starting over
+- If information is missing from the source, PA Studio should not invent it
+- When adding extra notes, include them clearly so they can be merged with the main content
 
 ---
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Agent asks for source text when using SCORM | Say "SCORM only" or set source text to "N/A" |
-| Fields show "TBD" | The source document didn't contain that information — fill in manually |
-| Document formatting looks off | Try regenerating — the LLM occasionally varies output |
-| Can't find the SCORM course | Try different keywords — the agent searches by topic description |
-| Didn't receive email | Check spam/junk folder; verify your email is correct |
+| Issue | What to do |
+|-------|------------|
+| The agent asks for more content | Send a fuller source passage; very short pasted content is rejected |
+| The SCORM course you want is not in the top 5 | Try different course keywords, a course ID, or a more specific topic |
+| A section looks incomplete | Check whether the source content actually included that detail |
+| A link does not work | Make sure the URL is reachable and you have permission if it is a SharePoint document |
+| You did not receive the email | Check junk/spam and confirm the mailbox tied to your Microsoft account |
 
 ---
 
@@ -146,6 +163,6 @@ Your generated PA document includes:
 
 | What | Location |
 |------|----------|
-| Generated PA documents | SharePoint: ATLAS-PA-Outputs |
-| SCORM Course Analysis Reports | SharePoint: CO+I Learning / Agents / Course Analysis Reports V3 |
-| Your conversation history | Microsoft Teams chat (auto-saved) |
+| SCORM source library | SharePoint: `https://microsoft.sharepoint.com/teams/COILearning` → `/Agents/Course Analysis Reports V3` |
+| Generated PA documents | SharePoint: `https://microsoft.sharepoint.com/sites/86dae876-a7f6-43da-824a-83a2c42644bb` → `/Shared Documents/ATLAS-PA-Outputs` |
+| Conversation | Teams, M365 Copilot, or Copilot Studio chat history |

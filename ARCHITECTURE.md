@@ -1,11 +1,10 @@
-# ATLAS PA Agent — Studio-Only Architecture V6
+# PA Studio — Current Architecture (July 25, 2026)
 
 ## Overview
 
-The ATLAS PA Agent generates Practical Activity Worksheets from source documents.  
-This architecture uses **only Copilot Studio + Power Automate** — zero Azure Functions, zero Azure OpenAI, zero custom code.
+PA Studio generates Practical Activity Worksheets from SCORM Course Analysis Reports, pasted source content, and document links.
 
-**Last updated:** Based on deep research across Microsoft Agent Academy, CPSAgentKit, and official docs.
+The live solution is built with **Copilot Studio + Power Automate** and uses **SharePoint Knowledge** plus **Work IQ** for content retrieval. There are **zero Azure services, zero custom APIs, and zero custom code** in the active architecture.
 
 ---
 
@@ -13,439 +12,315 @@ This architecture uses **only Copilot Studio + Power Automate** — zero Azure F
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| User Interface | Microsoft Teams | Where users interact with the agent |
-| Orchestration | Copilot Studio (Generative Orchestration) | Routes conversation, manages state, runs AI |
-| AI / LLM | GPT-5 Reasoning (Copilot Studio Prompt Builder) | PA field extraction (400K token context) |
-| State Management | Single JSON string (bot-scoped variable) | All 18 PA fields in one variable, parsed when needed |
-| Knowledge | SharePoint RAG (Knowledge Source) | SCORM content understanding (not primary matching) |
-| SCORM Matching | Hybrid: Flow lists files + Prompt picks match | Reliable file selection from 100+ docs |
-| Automation | Power Automate (2-3 flows) | File handling + document generation |
-| Document Generation | Document Output (Prompt Builder) | Word doc from {{placeholder}} template — requires AI Builder |
-| File Storage | SharePoint Online | Source files (SCORM) + output archive |
-| Delivery | Outlook + Teams | Email with attachment + chat download link |
+| User channels | Microsoft Teams, M365 Copilot, Copilot Studio test chat | Where users interact with PA Studio |
+| Orchestration | Copilot Studio agent | Routes requests, controls topic entry, and manages the conversation |
+| SCORM search | SharePoint Knowledge source | Lets the orchestrator search the SCORM library and retrieve the selected course content |
+| URL reading | Work IQ | Reads public URLs and internal SharePoint links on behalf of the orchestrator |
+| Extraction | `ExtractPA` prompt (GPT-5 Reasoning) | Extracts 17 PA fields using field-by-field rules |
+| Preview formatting | `FormatPreview` prompt (GPT-4.1 mini) | Converts JSON into a readable emoji-labeled preview |
+| Editing | `EditPA` prompt | Applies user-requested changes to the current JSON |
+| Document generation | `GeneratePA` prompt + Document Output | Fills the PA template and returns a Word document |
+| Automation | `ATLAS-PA-GenerateDoc` flow | Parses JSON, runs `GeneratePA`, saves the file, creates a link, and emails the user |
+| Storage | SharePoint Online | Hosts the SCORM library and the generated PA output library |
+| Backup search | `SearchSCORM` flow | Built and retained as a backup, but not used in the current runtime path |
 
 ---
 
-## Research-Validated Design Decisions
+## Current Operating Principles
 
-### Decision 1: Single JSON variable instead of 18 globals
-**Source:** CPSAgentKit anti-patterns documentation
+### 1. Constrained orchestrator
+The orchestrator is intentionally narrow. It handles:
+- SCORM Knowledge search
+- URL content reading through Work IQ
+- routing everything into the **Create PA** topic
 
-❌ **Old plan:** 18 separate global variables (gblPATitle, gblDuration, etc.)  
-✅ **New plan:** One bot-scoped variable `bot.paFieldsJSON` containing all fields as a JSON string
+It does **not** perform extraction, preview, editing, or document generation itself.
 
-**Why:** Research found that using global variables as an invocation contract is a known anti-pattern:
-> "The planner may narrate success while the topic still sees blank variables."
+### 2. Tool lockdown
+All prompts and flows are set to **Only when referenced by topics or agents**. In practice, this means the orchestrator cannot call them directly. Its only safe path is to pass full source content into the topic.
 
-The JSON string is parsed into individual values only inside the GenerateDoc flow (using Power Automate's "Parse JSON" action).
+### 3. Topic-first execution
+Every successful run goes through the **Create PA** topic. The topic owns:
+- extraction
+- preview
+- edit loop
+- document generation
+- delivery
+- clean conversation ending
 
-### Decision 2: Document Output for document generation
-**Source:** Tested and validated — formatting, bullets, line breaks, checkboxes all work
+### 4. Pass raw content, not summaries
+The orchestrator passes **all raw content** into the topic through the topic input. It does not summarize, filter, shorten, or reorganize the source text before handoff.
 
-❌ **Rejected:** "Populate a Microsoft Word template" connector — plain text only, no line breaks or bullets in content controls  
-✅ **Chosen:** Document Output (Prompt Builder feature) — replaces `{{placeholders}}` with actual text
+### 5. Deterministic input handling
+Inside the topic, input handling is explicit:
+- if content is already present, continue
+- if content is missing, ask the user to paste it
+- if pasted content is too short, fail validation and ask for more detail
 
-**Why:**
-- Handles multiline content, bullets (•), checkboxes (☐), sub-headers — all critical for PA documents
-- Output is fully editable (no content control locking)
-- Template uses simple `{{FieldName}}` syntax
-- Tested with complex PA content and passed all formatting tests
+---
 
-**Requirement:** AI Builder must be enabled in the tenant. ✅ Confirmed available in target environment.
+## Supported Content Paths
 
-**Template format:** `{{FieldName}}` double curly braces in a .docx file, NOT Word Content Controls.
+| Content path | How it works now |
+|-------------|------------------|
+| SCORM search | Orchestrator searches the Knowledge source, shows top matches, user selects one, and the full course content is passed into the topic |
+| Pasted content | User pastes text directly, and the orchestrator passes it into the topic |
+| Public link | Work IQ reads the URL content and passes it into the topic |
+| SharePoint link | Work IQ reads the internal document content and passes it into the topic |
+| Multi-link | The orchestrator combines content from multiple URLs before calling the topic |
+| Mixed input | SCORM content and additional user content are concatenated before extraction |
 
-### Decision 3: Hybrid SCORM matching (not Knowledge alone)
-**Source:** CPSAgentKit knowledge constraints
-
-❌ **Old plan:** Knowledge source alone finds the right SCORM file  
-✅ **New plan:** Knowledge for understanding + Flow+Prompt for reliable matching
-
-**Why:** Knowledge retrieval is non-deterministic and has limitations:
-> "Identical queries can return different results"
-> "Without M365 Copilot license: SharePoint files limited to 7MB (silently ignored)"
-
-### Decision 4: Everything stays in ONE topic
-**Source:** CPSAgentKit pipeline patterns
-
-The entire PA generation flow (collect → extract → preview → edit → generate) stays in a single topic so variables remain in scope. No topic handoffs during the pipeline.
-
-### Decision 5: Pass file directly to prompt (skip separate text extraction)
-**Source:** GPT-5/GPT-4.1 multimodal capabilities
-
-For user-provided SharePoint files, we can pass the file directly to the extraction prompt as a document input. GPT-5 reads the document natively — no separate text extraction step needed.
-
-Text extraction flow is still needed for SCORM files (where we get file content from SharePoint programmatically).
-
-### Decision 6: Adaptive Cards for preview
-**Source:** Copilot Studio capabilities research
-
-Use Adaptive Cards instead of plain text messages for the preview display. Structured card layout for 18 fields is more readable and professional.
+**Topic input name:** The orchestrator passes **SourceContent**, which is stored inside the topic as **`SearchQuery`**.
 
 ---
 
 ## End-to-End Flow
 
-```
-USER (Teams)
+```text
+USER
   │
-  │ "Create a PA about CDU introduction"
-  │
-  ▼
-COPILOT STUDIO AGENT
-  │
-  ├── KNOWLEDGE SOURCE ──────────────────────────────────────────┐
-  │   SharePoint: /teams/COILearning/Agents/                     │
-  │   Course Analysis Reports V3                                  │
-  │   • 100+ Word docs, auto-synced                              │
-  │   • Used for SCORM content understanding                     │
-  │   • NOT used as sole matching mechanism                      │
-  └──────────────────────────────────────────────────────────────┘
-  │
-  ├── TOPIC: Create PA (single topic, all steps) ───────────────┐
-  │                                                               │
-  │   [Question Node] ─── "How would you like to create?"        │
-  │         │               • Own content                         │
-  │         │               • SCORM library                       │
-  │         │               • Both                                │
-  │         ▼                                                     │
-  │   [Condition Node] ── Branch on content path                  │
-  │         │                                                     │
-  │    ┌────┼────┐                                                │
-  │    │    │    │                                                 │
-  │  user scorm mixed                                             │
-  │    │    │    │                                                 │
-  │    ▼    ▼    ▼                                                │
-  │   [Collect Input]                                             │
-  │     user: paste text or SP link                               │
-  │     scorm: topic description                                  │
-  │     mixed: both                                               │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [SCORM path: Call Action → ListSCORM flow]                  │
-  │     Returns file list → Prompt picks best match               │
-  │     → Call Action → ExtractText flow                          │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Call Action: PA Extraction Prompt]                         │
-  │     Input: source text (or file as document input)            │
-  │     Model: GPT-5 Reasoning (400K context)                     │
-  │     Output: JSON string with 18 PA fields                     │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Set Variable] ── bot.paFieldsJSON = prompt output          │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Message Node: Adaptive Card] ── Preview all fields         │
-  │     "Say 'generate' or tell me what to change"                │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Edit Loop via Slot Filling]                                │
-  │     User: "change Duration to 2 hours"                        │
-  │     Agent parses JSON → updates field → re-serializes         │
-  │     Re-displays Adaptive Card preview                         │
-  │     (repeats until user says "generate")                      │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Call Action: GenerateDoc Flow]                             │
-  │     Input: bot.paFieldsJSON                                   │
-  │     Flow parses JSON → fills Word template via connector       │
-  │     Saves to SharePoint → emails user                         │
-  │     Returns: downloadURL                                      │
-  │         │                                                     │
-  │         ▼                                                     │
-  │   [Message Node] ── "Your PA has been generated and           │
-  │                      emailed. [Download here](link)"          │
-  │                                                               │
-  └───────────────────────────────────────────────────────────────┘
+  ├── Teams
+  ├── M365 Copilot
+  └── Copilot Studio test chat
   │
   ▼
-OUTPUTS
-  ├── SharePoint: ATLAS-PA-Outputs (archived .docx)
-  ├── Email: User receives .docx attachment
-  └── Teams Chat: Download link displayed
+PA STUDIO ORCHESTRATOR
+  │
+  ├── If user mentions a course, topic, or keywords:
+  │     1. Search SharePoint Knowledge (SCORM library)
+  │     2. Present the top 5 matching courses with course name + course ID
+  │     3. Wait for user selection
+  │     4. Retrieve the full course content
+  │     5. Call Create PA topic with SourceContent
+  │
+  ├── If user pastes content:
+  │     1. Call Create PA topic with SourceContent
+  │
+  ├── If user provides one or more links:
+  │     1. Read content through Work IQ
+  │     2. Combine content if needed
+  │     3. Call Create PA topic with SourceContent
+  │
+  └── If user asks for a PA but gives no content:
+        Ask whether to search SCORM or use pasted/linked content
+  │
+  ▼
+CREATE PA TOPIC
+  │
+  ├── Trigger
+  ├── Condition: Is SearchQuery blank?
+  │   ├── No: Ask whether to add more content, then continue
+  │   └── Yes: Ask user to paste content
+  │             └── Validate input (Len < 50 = reject and re-ask)
+  │
+  ├── ExtractPA
+  ├── Set paFieldsJSON
+  ├── FormatPreview
+  ├── Show emoji-labeled preview
+  │
+  ├── Generate?
+  │   ├── Yes → ATLAS-PA-GenerateDoc flow
+  │   │         ├── Parse JSON
+  │   │         ├── Run GeneratePA
+  │   │         ├── Convert contentBytes to binary
+  │   │         ├── Save to SharePoint
+  │   │         ├── Create sharing link
+  │   │         └── Email + return URL
+  │   │
+  │   └── No → Edit?
+  │             ├── Yes → EditPA → update paFieldsJSON → FormatPreview → preview loop
+  │             └── Other → Ask user to choose Generate or Edit → loop
+  │
+  ▼
+END OF CONVERSATION
+  └── Clean close with a "create another?" option
 ```
 
 ---
 
 ## Copilot Studio Components
 
-### 1. Knowledge Source
+### 1. Agent instructions
 
-| Setting | Value |
-|---------|-------|
-| Type | SharePoint |
-| Site | https://microsoft.sharepoint.com/teams/COILearning |
-| Folder | /Agents/Course Analysis Reports V3 |
-| Content | 100+ Course Analysis Word documents |
-| Sync | Automatic (reflects new files) |
-| Auth | User's Microsoft credentials |
-| Role | Content understanding + supplementary search (NOT primary file matching) |
+The orchestrator follows four core routes:
+1. **Course or topic request** → search Knowledge, present top 5 matches, wait for selection, pass full content to the topic
+2. **User-provided content** → pass the content directly to the topic
+3. **User-provided link** → read the link content, then pass it to the topic
+4. **No content yet** → ask whether to search SCORM or use pasted/linked content
 
-### 2. Topic: Create PA
+**Non-negotiable rule:** Always route through the **Create PA** topic and pass **all raw content**.
 
-**Orchestration mode:** Generative  
-**Trigger:** User expresses intent to create a PA  
-**Scope:** Entire pipeline in ONE topic (no topic handoffs)
+### 2. Knowledge source
 
-**Nodes used:**
+| Setting | Current value |
+|---------|---------------|
+| Type | SharePoint Knowledge source |
+| Site | `https://microsoft.sharepoint.com/teams/COILearning` |
+| Folder | `/Agents/Course Analysis Reports V3` |
+| Content | ~300 SCORM Course Analysis `.doc` files |
+| Purpose | SCORM search and full-content handoff through the orchestrator |
+| Note | Files above 7 MB may be silently ignored without an M365 Copilot license |
+| File cap | 1,000 files per agent |
 
-| Node Type | Count | Purpose |
-|-----------|-------|---------|
-| Question | 2-3 | Content source, topic description, paste text |
-| Condition | 1-2 | Branch on user/scorm/mixed |
-| Call Action | 3-4 | ListSCORM flow, ExtractText flow, Extraction prompt, GenerateDoc flow |
-| Set Variable | 1 | Store JSON string (bot.paFieldsJSON) |
-| Message | 2 | Adaptive Card preview, delivery message |
+### 3. Topic: Create PA
 
-### 3. Prompt: PA Field Extraction
+**Design:** One deterministic topic that handles the full generation pipeline.
 
-| Setting | Value |
-|---------|-------|
-| Type | Prompt Builder (Call Action) |
-| Model | GPT-5 Reasoning (400K token context) |
-| Input | sourceText (string) or file (document input for multimodal) |
-| Output | JSON (18 PA fields) |
-| Content Moderation | Set to Low (domain-specific training content may trigger false positives) |
-
-**Prompt instructions include:**
-- PA is a FACILITATOR-LEVEL training document, not an SOP copy
-- ActivitySteps: 10-12 summarized phases, not every sub-step verbatim
-- Never fabricate PPE, tools, fault codes, or steps — use TBD/N/A
-- Duration: extract from source or TBD, never estimate
-- WhatIsNeeded: 4 categories (Safety Guidelines, Required PPE, Tooling, Additional Equipment)
-- If source has Training Plan learning objectives, extract directly into Skills field
-- Output: strict JSON with all 18 field keys
-
-### 4. State Management
-
-**Storage:** Single bot-scoped variable `bot.paFieldsJSON`  
-**Format:** JSON string containing all 18 PA fields  
-**Lifetime:** Entire conversation session  
-**Not stored in:** LLM token window, Dataverse, or any external database
-
-```json
-{
-  "PA_Title": "...",
-  "PA_Subtitle": "...",
-  "PA_DocumentLabel": "Practical Activity Worksheet",
-  "CourseReference": "...",
-  "Authors": "...",
-  "Contributors": "...",
-  "LastUpdated": "...",
-  "TargetAudience": "...",
-  "Duration": "...",
-  "ActivityDescription": "...",
-  "TrainerGuidelines": "...",
-  "DesiredLearningOutcome": "...",
-  "WhatIsNeeded": "...",
-  "SkillsBasedLearningObjectives": "...",
-  "DocumentationAndReferences": "...",
-  "ActivitySteps": "...",
-  "Validation": "...",
-  "Notes": "..."
-}
+**Current topic logic**
+```text
+Trigger → Condition (SearchQuery blank?)
+├── Not blank (orchestrator filled): Additional content? → Yes/No → ExtractPA
+└── Blank (manual): "Paste your content" → Input validation (Len < 50) → ExtractPA
+→ Set paFieldsJSON → FormatPreview → Preview message → Generate/Edit choice
+├── Generate: GenerateDoc flow → email + download link → End
+├── Edit: EditPA → update paFieldsJSON → FormatPreview → loop to preview
+└── Other: "Please select Generate or Edit" → loop
 ```
 
-**Edit loop:** Agent parses JSON → modifies requested field → re-serializes → updates bot.paFieldsJSON
+### 4. Prompt: ExtractPA
 
-### 5. Document Generation (Document Output)
+| Setting | Current value |
+|---------|---------------|
+| Model | GPT-5 Reasoning |
+| Purpose | Extract the PA content from raw source text |
+| Output | JSON for **17 extracted fields** |
+| Rules | Field-by-field extraction rules ported from the retired Azure Function |
+| Safeguard | No fabrication |
+| Activity steps | Facilitator-level `ActivitySteps`, not source text dumped verbatim |
 
-| Setting | Value |
-|---------|-------|
-| Feature | Document Output (Prompt Builder) |
-| Template | PA_Template_DocOutput.docx |
-| Template location | Uploaded in Prompt Builder settings |
-| Placeholder format | {{FieldName}} (double curly braces, no spaces) |
-| Output | .docx file bytes (via flow) |
-| Requires | AI Builder enabled ✅ |
+**Important:** The document still includes the fixed label **"Practical Activity Worksheet"**, but that label is not treated as one of the extracted inputs.
 
-**Tested and validated:** Handles bullets (•), checkboxes (☐), line breaks, sub-headers, multiline content. Output is fully editable.
+### 5. Prompt: EditPA
 
-**Template structure:** Same table layout, shading, column widths as current PA output — with `{{placeholders}}` where content is injected.
+| Setting | Current value |
+|---------|---------------|
+| Inputs | `CurrentJSON`, `EditRequest` |
+| Purpose | Update the existing PA JSON without redoing the full extraction |
+| Output | Revised JSON |
+
+### 6. Prompt: FormatPreview
+
+| Setting | Current value |
+|---------|---------------|
+| Model | GPT-4.1 mini |
+| Purpose | Turn the JSON into a readable preview for chat |
+| Output style | Emoji-labeled text preview |
+| Role | Makes the preview readable across chat channels |
+
+### 7. Prompt: GeneratePA
+
+| Setting | Current value |
+|---------|---------------|
+| Inputs | 17 PA fields |
+| Feature | Document Output enabled |
+| Template | Uploaded PA template |
+| Output | Base64 document payload for the `.docx` file |
+
+### 8. Flow: ATLAS-PA-GenerateDoc
+
+**Current flow sequence**
+1. Parse JSON
+2. Run `GeneratePA`
+3. Convert the returned file bytes
+4. Save the document to SharePoint
+5. Create a sharing link
+6. Email the user
+7. Return the document URL to the topic
+
+**Proven file-bytes formula**
+```text
+base64ToBinary(body('Run_a_prompt')?['responsev2']?['predictionOutput']?['documentOutput']?['contentBytes'])
+```
+
+### 9. Flow: SearchSCORM
+
+`SearchSCORM` still exists, but it is **not used in the current architecture**. It is retained as a backup option only.
+
+### 10. End of Conversation
+
+After successful generation and delivery, the agent closes cleanly and offers the user a chance to create another PA.
 
 ---
 
-## Power Automate Flows (2-3 total)
+## Data Handling and State
 
-### Flow 1: ExtractText
+| Item | Current behavior |
+|------|------------------|
+| Topic input | `SourceContent` from the orchestrator, stored internally as `SearchQuery` |
+| Optional added notes | Concatenated with `SearchQuery` before extraction |
+| Working state | `paFieldsJSON` stores the current extracted or edited PA content |
+| Preview source | `FormatPreview` reads `paFieldsJSON` |
+| Generation source | The GenerateDoc flow parses `paFieldsJSON` and maps it into the 17 `GeneratePA` inputs |
 
-| Property | Value |
-|----------|-------|
-| Trigger | Copilot Studio |
-| Input | fileURL (string) |
-| Output | plainText (string) |
-
-**Actions:**
-1. SharePoint → "Get file content" (download the file)
-2. Pass to prompt as document input (GPT reads natively) OR AI Builder "Extract text"
-3. Return value → plainText
-
-### Flow 2: GenerateDoc
-
-| Property | Value |
-|----------|-------|
-| Trigger | Copilot Studio |
-| Input | paFieldsJSON (string — the full JSON) |
-| Output | downloadURL (string) |
-
-**Actions:**
-1. Parse JSON → extract 18 individual field values
-2. Run a Prompt → Document Output enabled (PA_Template_DocOutput.docx)
-   - Map each parsed field to corresponding prompt input variable
-   - Extract file bytes: `binary(outputs('Run_a_prompt')?['body/responsev2/predictionOutput/documentOutput/contentBytes'])`
-3. SharePoint → "Create file" (save filled doc to ATLAS-PA-Outputs)
-4. SharePoint → "Create sharing link"
-5. Outlook → "Send email" (attach document to user)
-6. Return value → downloadURL
-
-**Note:** Cloud flow timeout is 100 seconds. Place email/archive steps AFTER the return step if needed to avoid timeout.
-
-### Flow 3: ListSCORM (for SCORM matching)
-
-| Property | Value |
-|----------|-------|
-| Trigger | Copilot Studio |
-| Input | none |
-| Output | fileList (array of filenames) |
-
-**Actions:**
-1. SharePoint → "List folder" (Course Analysis Reports V3)
-2. Select → extract filenames
-3. Return value → fileList (array)
+**Proven Power Fx concatenation**
+```text
+Topic.SearchQuery & " ADDITIONAL NOTES: " & Topic.AdditionalContent
+```
 
 ---
 
 ## What This Replaces
 
-| Retired Component | Replaced By |
-|---|---|
-| Azure Function App (atlas-pa-generator) | Copilot Studio Prompt Builder + Document Output |
-| Azure OpenAI resource | Built-in GPT-5 in Copilot Studio |
-| Azure Blob Storage (pa-sessions container) | bot.paFieldsJSON variable |
-| GitHub Actions CI/CD pipeline | Not needed (no code) |
-| function_app.py (1600+ lines Python) | Prompt instructions + 2-3 Power Automate flows |
-| requirements.txt (6 dependencies) | Nothing |
-| 5 HTTP endpoints | 0 endpoints |
-| Monthly Azure cost (~$1-5) | $0 additional |
+| Retired / avoided approach | Current replacement |
+|---------------------------|---------------------|
+| Azure Functions | Copilot Studio prompts + Power Automate |
+| Custom code services | Native Copilot Studio + Power Automate components |
+| Direct orchestrator tool execution | Topic-only tool execution with lockdown |
+| Older preview formatting experiments | `FormatPreview` emoji-text formatting |
+| Separate SCORM listing / text extraction runtime path | Knowledge search + orchestrator handoff |
 
 ---
 
-## What We Keep
+## Security and Control Model
 
-| Component | Purpose |
-|---|---|
-| Copilot Studio agent | Orchestration, conversation, AI |
-| Power Automate (2-3 flows) | File handling + doc generation |
-| SharePoint (CO+I Learning) | SCORM Course Analysis library |
-| SharePoint (ATLAS-PA-Outputs) | Generated document archive |
-| Outlook | Email delivery |
-| Teams | User interface |
-
----
-
-## Input Handling
-
-### Supported Input Combinations (Single Prompt, No Loop)
-
-| Input Type | How It Works | Supported? |
-|------------|-------------|------------|
-| Pasted text only | User pastes text → goes straight to extraction prompt | ✅ |
-| One link/file only | ExtractText flow gets content → goes to extraction prompt | ✅ |
-| Text + one SCORM file | Both concatenated → goes to extraction prompt | ✅ |
-| Text + one link/file | ExtractText gets file content, concatenated with pasted text → extraction prompt | ✅ |
-| Multiple files/links | Each file needs separate ExtractText call — requires collection loop (future enhancement) | ⬜ Not yet |
-
-### How Multiple Sources Combine
-
-```
-User provides: pasted text + SharePoint link
-         │
-         ▼
-  [ExtractText flow] ── gets file content from link
-         │
-         ▼
-  [Concatenate] ── "USER CONTENT: [pasted text] --- FILE CONTENT: [extracted text]"
-         │
-         ▼
-  [PA Extraction Prompt] ── synthesizes all sources into one PA
-         │
-         ▼
-  [Single JSON output — 18 fields]
-```
-
-GPT-5 Reasoning (400K token context) handles any reasonable combination of source materials in a single prompt call.
-
----
-
-## SCORM Integration (Hybrid Approach)
-
-### Discovery Layer (Knowledge Source)
-- Agent CAN search Knowledge source for general SCORM understanding
-- Helps answer questions about course content
-- NOT relied upon for deterministic file matching
-
-### Matching Layer (Flow + Prompt)
-- ListSCORM flow returns all filenames from SharePoint folder
-- Prompt node receives: file list + user's topic description
-- Prompt picks the best match → returns filename
-- Deterministic: same input always produces same file selection
-
-### Extraction Layer (ExtractText Flow)
-- Gets full document content from matched file
-- Feeds into PA Extraction prompt
-- For "mixed" path: SCORM text + user's pasted text concatenated
-
----
-
-## Security & Compliance
-
-| Concern | How It's Handled |
-|---------|-----------------|
-| Data residency | All within Microsoft tenant — no third-party services |
-| Authentication | Microsoft Entra ID (user's own credentials) |
-| SharePoint access | Respects user's existing permissions |
-| No secrets/keys | No API keys, connection strings, or stored credentials |
-| No custom code | Nothing to audit, patch, or maintain |
-| PII | Never stored in global variables (bot variable cleared per session) |
+| Concern | How it is handled now |
+|---------|------------------------|
+| Rogue tool use | Prompts and flows are locked to topic/agent reference mode |
+| Over-summarization | Agent instructions require raw content handoff |
+| Link access | Work IQ reads public and internal links on the orchestrator's behalf |
+| SharePoint access | Uses existing Microsoft permissions and connectors |
+| HTTP to SharePoint | Avoided because tenant DLP blocks that pattern |
+| Custom code risk | Removed from the active architecture |
 
 ---
 
 ## Known Platform Constraints
 
-| Constraint | Limit | Impact |
-|-----------|-------|--------|
-| Agent instructions | 8,000 characters | Keep instructions focused |
-| Conversation history | Last 10 turns visible to orchestrator | Long edit loops may lose early context |
-| Cloud flow timeout | 100 seconds | Return download URL before doing email/archive |
-| Connector payload | 5 MB (public cloud) | Large docs may need chunking |
-| Knowledge source files | 7 MB without M365 Copilot license | Some SCORM files may be silently ignored |
-| Knowledge source max | 500 objects per agent, 1000 files | Well within our 100+ files |
-| Prompt context (GPT-5 Reasoning) | 400K tokens (~300K words) | Handles any document size |
+| Constraint | Limit / behavior | Impact |
+|-----------|------------------|--------|
+| Agent instructions | 8,000 characters | Keep orchestrator instructions tight |
+| Conversation history | Last 10 turns visible | Long edit loops can lose early context |
+| Cloud flow timeout | 100 seconds | Keep generation and delivery efficient |
+| Connector payload | 5 MB | Large inputs or outputs can fail |
+| Knowledge file size | 7 MB without M365 Copilot license | Oversized files may be silently ignored |
+| Knowledge file cap | 1,000 files per agent | Current library fits |
+| DLP | HTTP requests to SharePoint blocked | Must stay inside approved connectors and Work IQ |
 
 ---
 
-## Risks & Mitigations
+## Known Blockers and Mitigations
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| Document Output is Preview feature | Low | Tested and working; Azure build as fallback |
-| Knowledge retrieval non-deterministic | Medium | Hybrid approach: flow+prompt for reliable matching |
-| Large document exceeds payload | Low | 5MB limit; most SOPs are under 1MB |
-| Flow timeout on doc generation | Medium | Return URL first, do email/archive after return step |
-| AI Builder not enabled in tenant | Low | ✅ Confirmed available in target environment |
+For the full history, see [SCORM_INTEGRATION.md](SCORM_INTEGRATION.md).
 
----
-
-## References
-
-- Microsoft Docs: "Populate a Microsoft Word template" connector
-- CPSAgentKit: Anti-patterns, Pipeline Patterns, Knowledge Constraints
-- Microsoft Docs: Prompt Builder, Variables, Copilot Studio
-- Microsoft Agent Academy: Document generation patterns
+| Blocker | Current understanding | Mitigation |
+|---------|-----------------------|------------|
+| Generative Answers output does not persist in topic variables | Data drops after the node finishes | Do not build the runtime path around Generative Answers output |
+| Child agents cannot access Knowledge the same way as the parent | SCORM reading is unreliable in child paths | Keep SCORM search/read in the orchestrator |
+| DLP blocks SharePoint HTTP requests | Direct HTTP workarounds are not viable | Use approved connectors and Work IQ |
+| Legacy `.doc` files limit Power Automate options | Native extraction choices are limited | Let Knowledge handle SCORM reading |
+| Orchestrator non-determinism | Instructions alone are not enough | Constrain the orchestrator and lock down tools |
 
 ---
 
-## Milestone Tracker
+## Status
 
-See: `MILESTONES.md`
+- **Architecture state:** Current as of **July 25, 2026**
+- **Delivery model:** Copilot Studio + Power Automate + Work IQ
+- **Azure usage:** None in the active solution
+- **Milestones:** **46/46 complete (100%) across 7 phases**
+
+See also:
+- [README.md](README.md)
+- [USER_GUIDE.md](USER_GUIDE.md)
+- [SCORM_INTEGRATION.md](SCORM_INTEGRATION.md)
+- [MILESTONES.md](MILESTONES.md)
