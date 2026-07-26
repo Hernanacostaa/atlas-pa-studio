@@ -5,10 +5,10 @@
 | Metric | Value |
 |--------|-------|
 | Total Phases | 7 |
-| Total Milestones | 40 |
-| Complete | 29/40 (73%) |
+| Total Milestones | 46 |
+| Complete | 30/46 (65%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
-| Last Updated | Phase 7 added: Content Quality & Conversation Control — 11 milestones (July 9, 2026) |
+| Last Updated | Phase 7 restructured: SCORM integration + orchestrator lockdown (July 25, 2026) |
 
 ---
 
@@ -119,9 +119,9 @@
 
 ---
 
-## Phase 7: Content Quality & Conversation Control
+## Phase 7: SCORM Integration & Conversation Control
 
-> Goal: Fix extraction quality, prevent orchestrator from going rogue, and close conversations cleanly. Based on user testing feedback (July 8-9, 2026).
+> Goal: Reliable SCORM integration with constrained orchestrator, improved extraction quality, and clean conversation handling. Based on testing July 8-25, 2026.
 
 ### Issues Identified in Testing
 
@@ -134,31 +134,42 @@
 | I5 | SystemError on Edit in some cases | Breaks edit loop |
 | I6 | Duplicate questions (orchestrator + topic both ask) | Confusing UX |
 
-### 7A: Front-End Funnel (Deterministic User Guidance)
+### 7A: Orchestrator Lockdown & SCORM Handoff
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 7.1 | Add content source question: "How will you provide content?" → SCORM / Paste / Link | ⬜ | First node after trigger — determines path before orchestrator can deviate |
-| 7.2 | Add input validation — reject empty/nonsense input, redirect user | ⬜ | "I don't have any" should get "Please come back when you have source content" |
-| 7.3 | Wire SCORM search path through topic (not orchestrator) | ⬜ | Topic controls the search → select → extract flow end-to-end |
-| 7.4 | Test all three paths through the funnel | ⬜ | SCORM, paste, link — all deterministic |
+| 7.1 | Lock all prompts to "Only when referenced by topics" | ✅ | ExtractPA, GeneratePA, FormatPreview — orchestrator can't call directly |
+| 7.2 | Revert topic to accept SourceContent from orchestrator | ⬜ | Re-enable "Receive values from other topics" on content variable |
+| 7.3 | Remove child agent and Generative Answers nodes from topic | ⬜ | Clean up failed approaches — delete SCORM Content Reader, Gen 1, Gen 2 |
+| 7.4 | Update orchestrator instructions for constrained behavior | ⬜ | Only two jobs: search Knowledge + call topic with content |
+| 7.5 | Test SCORM path end-to-end with locked tools | ⬜ | Search → pick → orchestrator reads → topic extracts → generate |
+| 7.6 | Test orchestrator no longer goes rogue | ⬜ | Verify it can't call prompts directly, doesn't generate PA inline |
 
-### 7B: Extraction Quality (Port Azure Function Prompt)
-
-| # | Milestone | Status | Notes |
-|---|-----------|--------|-------|
-| 7.5 | Rewrite ExtractPA with proven Azure Function prompt rules | ⬜ | Port field-by-field rules from function_app.py lines 1254-1320 |
-| 7.6 | Key quality rules: no fabrication per field, facilitator-level ActivitySteps (10-12), bold WhatIsNeeded sub-sections | ⬜ | Match Azure Function output quality |
-| 7.7 | Test extraction with 3 different source types | ⬜ | SCORM course, pasted SOP, link content |
-| 7.8 | Validate content quality is production-acceptable | ⬜ | Hernan reviews and confirms fields have correct depth and placement |
-
-### 7C: Conversation Cleanup
+### 7B: Topic Cleanup & Input Validation
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 7.9 | Add proper end node — clear closing, no "did that answer" loop | ⬜ | Topic ends with clean message + option to create another PA |
-| 7.10 | Handle edge cases — empty input, greetings mid-flow, nonsense text | ⬜ | Graceful redirects instead of processing garbage |
-| 7.11 | Test conversation recovery and multi-PA sessions | ⬜ | Complete one PA → start another in same session |
+| 7.7 | Add input validation — reject empty/nonsense input | ⬜ | "I don't have any" gets redirected, not processed |
+| 7.8 | Clean up topic flow — remove experimental nodes | ⬜ | Delete unused variables, Set Variables, debug messages |
+| 7.9 | Test paste path still works after cleanup | ⬜ | User pastes content directly → full pipeline |
+| 7.10 | Test link path still works | ⬜ | Orchestrator reads URL via Work IQ → passes to topic |
+
+### 7C: Extraction Quality (Port Azure Function Prompt)
+
+| # | Milestone | Status | Notes |
+|---|-----------|--------|-------|
+| 7.11 | Rewrite ExtractPA with proven Azure Function prompt rules | ⬜ | Port field-by-field rules from function_app.py lines 1254-1320 |
+| 7.12 | Key quality rules: no fabrication per field, facilitator-level ActivitySteps, bold WhatIsNeeded sub-sections | ⬜ | Match Azure Function output quality |
+| 7.13 | Test extraction with 3 different source types | ⬜ | SCORM course, pasted SOP, link content |
+| 7.14 | Validate content quality is production-acceptable | ⬜ | Hernan reviews and confirms |
+
+### 7D: Conversation Cleanup
+
+| # | Milestone | Status | Notes |
+|---|-----------|--------|-------|
+| 7.15 | Add proper end node — clear closing message | ⬜ | No "did that answer" loop — clean ending + option to create another PA |
+| 7.16 | Handle edge cases — empty input, greetings mid-flow | ⬜ | Graceful redirects instead of processing garbage |
+| 7.17 | Test conversation recovery and multi-PA sessions | ⬜ | Complete one PA → start another in same session |
 
 ---
 
