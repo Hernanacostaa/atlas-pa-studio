@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 7 |
 | Total Milestones | 46 |
-| Complete | 30/46 (65%) |
+| Complete | 35/46 (76%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 7 restructured: SCORM integration + orchestrator lockdown (July 25, 2026) |
 
@@ -139,11 +139,11 @@
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
 | 7.1 | Lock all prompts to "Only when referenced by topics" | ✅ | ExtractPA, GeneratePA, FormatPreview — orchestrator can't call directly |
-| 7.2 | Revert topic to accept SourceContent from orchestrator | ⬜ | Re-enable "Receive values from other topics" on content variable |
-| 7.3 | Remove child agent and Generative Answers nodes from topic | ⬜ | Clean up failed approaches — delete SCORM Content Reader, Gen 1, Gen 2 |
-| 7.4 | Update orchestrator instructions for constrained behavior | ⬜ | Only two jobs: search Knowledge + call topic with content |
-| 7.5 | Test SCORM path end-to-end with locked tools | ⬜ | Search → pick → orchestrator reads → topic extracts → generate |
-| 7.6 | Test orchestrator no longer goes rogue | ⬜ | Verify it can't call prompts directly, doesn't generate PA inline |
+| 7.2 | Revert topic to accept SourceContent from orchestrator | ✅ | Re-enabled "Receive values from other topics" on SearchQuery, cleaned up code |
+| 7.3 | Remove child agent and Generative Answers nodes from topic | ✅ | Deleted SearchSCORM flow call, Gen 1, Gen 2, child agent, Set Variables |
+| 7.4 | Update orchestrator instructions for constrained behavior | ✅ | Only two jobs: search Knowledge + call topic with content. No filtering/summarizing. |
+| 7.5 | Test SCORM path end-to-end with locked tools | ✅ | GPU replacement → pick → orchestrator reads → topic extracts → generate → email + link |
+| 7.6 | Test orchestrator no longer goes rogue | ✅ | Orchestrator routed through topic correctly, did not call prompts directly |
 
 ### 7B: Topic Cleanup & Input Validation
 
