@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 7 |
 | Total Milestones | 46 |
-| Complete | 39/46 (85%) |
+| Complete | 43/46 (93%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 7 restructured: SCORM integration + orchestrator lockdown (July 25, 2026) |
 
@@ -158,10 +158,10 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 7.11 | Rewrite ExtractPA with proven Azure Function prompt rules | ⬜ | Port field-by-field rules from function_app.py lines 1254-1320 |
-| 7.12 | Key quality rules: no fabrication per field, facilitator-level ActivitySteps, bold WhatIsNeeded sub-sections | ⬜ | Match Azure Function output quality |
-| 7.13 | Test extraction with 3 different source types | ⬜ | SCORM course, pasted SOP, link content |
-| 7.14 | Validate content quality is production-acceptable | ⬜ | Hernan reviews and confirms |
+| 7.11 | Rewrite ExtractPA with proven Azure Function prompt rules | ✅ | Ported field-by-field rules — specific PPE, tools, torque specs, source-only content |
+| 7.12 | Key quality rules: no fabrication per field, facilitator-level ActivitySteps, bold WhatIsNeeded sub-sections | ✅ | All rules applied — WhatIsNeeded has bold sections, steps are source-specific |
+| 7.13 | Test extraction with 3 different source types | ✅ | SCORM (GPU module), paste (UPS battery), link (Azure VMs), multi-link — all passed |
+| 7.14 | Validate content quality is production-acceptable | ✅ | Dramatic improvement — specific tools, torque specs, real PPE, no fabrication |
 
 ### 7D: Conversation Cleanup
 
