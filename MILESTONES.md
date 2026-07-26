@@ -6,7 +6,7 @@
 |--------|-------|
 | Total Phases | 7 |
 | Total Milestones | 46 |
-| Complete | 35/46 (76%) |
+| Complete | 39/46 (85%) |
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | Phase 7 restructured: SCORM integration + orchestrator lockdown (July 25, 2026) |
 
@@ -149,10 +149,10 @@
 
 | # | Milestone | Status | Notes |
 |---|-----------|--------|-------|
-| 7.7 | Add input validation — reject empty/nonsense input | ⬜ | "I don't have any" gets redirected, not processed |
-| 7.8 | Clean up topic flow — remove experimental nodes | ⬜ | Delete unused variables, Set Variables, debug messages |
-| 7.9 | Test paste path still works after cleanup | ⬜ | User pastes content directly → full pipeline |
-| 7.10 | Test link path still works | ⬜ | Orchestrator reads URL via Work IQ → passes to topic |
+| 7.7 | Add input validation — reject empty/nonsense input | ✅ | Len < 50 chars loops back with message to provide real content |
+| 7.8 | Clean up topic flow — remove experimental nodes | ✅ | Removed via code editor — clean YAML with only needed nodes |
+| 7.9 | Test paste path still works after cleanup | ✅ | Pasted UPS content → full pipeline → email + download link |
+| 7.10 | Test link path still works | ✅ | Microsoft Learn URL → Work IQ read → full pipeline → email + download link |
 
 ### 7C: Extraction Quality (Port Azure Function Prompt)
 
