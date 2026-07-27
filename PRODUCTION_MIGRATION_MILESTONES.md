@@ -29,24 +29,25 @@ Development success does not automatically prove production readiness. A product
 >
 > **Production impact:** Complete before the production baseline is frozen.
 
-- [ ] **IA.1** Add a new PA document row labeled **Media** and populate it with Media URLs found in the selected SCORM source file.
+- [ ] **IA.1** Automatically extract Media URLs embedded behind clickable text in the selected SCORM Word file and populate a new PA document row labeled **Media**. The user does not provide the URL.
 
 **Current state:** The live PA contract has 17 extracted fields. Completing this action will add `Media` as the 18th extracted field.
 
 | Affected component | Required change |
 |--------------------|-----------------|
-| SCORM retrieval | Confirm the complete SCORM content passed into Create PA includes the original Media URLs without summarizing or rewriting them |
+| Feasibility gate | Confirm the hidden hyperlink target, not only display text such as "Watch video," survives Knowledge retrieval and reaches `Topic.SearchQuery` |
+| SCORM retrieval | Automatically retrieve the selected SCORM document and preserve its embedded hyperlink targets without requiring the user to paste or provide URLs |
 | Field contract | Add a string field named `Media`; define ordering, duplicate handling, separator format, and missing-value behavior |
-| `ExtractPA` | Extract only Media URLs present in the source; never create or infer URLs |
+| `ExtractPA` | Extract only hyperlink targets actually present in the retrieved source; never create, infer, or reconstruct URLs from display text |
 | `EditPA` | Preserve `Media` during unrelated edits and allow an explicit Media edit |
 | `FormatPreview` | Add a readable **Media** section to the chat preview |
 | PA Word template | Add a new table row labeled **Media** with a mapped Document Output placeholder |
 | `GeneratePA` | Add the `Media` input and map it to the new template row |
 | `ATLAS-PA-GenerateDoc` | Update Parse JSON and the `GeneratePA` action mapping to include `Media` |
 | Documentation | Update the PA data model from 17 to 18 fields only after the complete path is implemented |
-| Regression testing | Test one URL, multiple URLs, duplicates, no Media URL, malformed source text, edit preservation, clickable output, and end-to-end SCORM generation |
+| Regression testing | Test hidden links behind text, one URL, multiple URLs, duplicates, no Media URL, malformed source text, edit preservation, clickable output, and end-to-end SCORM generation without user-supplied URLs |
 
-**Acceptance criteria:** The selected SCORM file's Media URLs appear in the preview and in the generated Word document's **Media** row, unchanged from the source, with no invented links and no regression to the existing 17 fields.
+**Acceptance criteria:** After the user selects a SCORM course, its embedded Media hyperlink targets automatically appear in the preview and generated Word document's **Media** row, unchanged from the source, with no request for the user to supply a URL, no invented links, and no regression to the existing 17 fields.
 
 ## Complete Component Inventory
 

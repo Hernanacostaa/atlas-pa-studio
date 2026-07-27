@@ -67,7 +67,9 @@ DocumentationAndReferences, ActivitySteps, Validation, Notes
 - `PA_DocumentLabel` = `Practical Activity Worksheet`
 
 ## Immediate Pending Enhancement
-- Add `Media` as an 18th extracted field containing Media URLs found in the selected SCORM source
+- Add `Media` as an 18th extracted field containing hyperlink targets embedded behind clickable text in the selected SCORM Word source
+- The user selects the SCORM course; never ask the user to paste or provide the Media URL
+- First verify that Knowledge retrieval preserves the hidden hyperlink target in `Topic.SearchQuery`; display text alone is insufficient
 - Add a new Word template row labeled **Media**
 - Update `ExtractPA`, `EditPA`, `FormatPreview`, `GeneratePA`, Parse JSON, flow mappings, tests, and documentation together
 - Do not describe `Media` as live until the complete path is implemented and validated

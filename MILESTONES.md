@@ -12,7 +12,7 @@
 
 ## Immediate Post-Build Action
 
-- [ ] Add a new PA row labeled **Media** and populate it with Media URLs extracted from the selected SCORM source file.
+- [ ] Automatically extract Media URLs embedded behind clickable text in the selected SCORM Word file and populate a new PA row labeled **Media** without asking the user to provide the URL.
 
 This action is not included in the completed 46-milestone build baseline. Its full cross-component implementation checklist is tracked as **IA.1** in `PRODUCTION_MIGRATION_MILESTONES.md`.
 
