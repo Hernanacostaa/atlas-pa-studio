@@ -37,11 +37,13 @@ Owner: Hernan Acosta (PM, not a developer — needs step-by-step GUI guidance)
 - USER_GUIDE.md — Current user experience
 - SCORM_INTEGRATION.md — Blockers, mitigations, and why the constrained orchestrator exists
 - MILESTONES.md — Build tracker (7 phases, 46 milestones, 100%)
+- PRODUCTION_MIGRATION_MILESTONES.md — Separate tracker for production packaging, dependencies, security, testing, cutover, rollback, and operations
 - README.md — Project overview and current status
 
 ## Conventions
 - Always push docs to GitHub immediately after creating or updating them
 - Update MILESTONES.md after completing any milestone
+- Update PRODUCTION_MIGRATION_MILESTONES.md only when production evidence supports the status change
 - Use plain language — no jargon without explanation
 - Test before declaring something complete
 - When giving Copilot Studio instructions, specify exact clicks and selections

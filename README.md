@@ -26,6 +26,7 @@ The orchestrator gathers raw content and routes everything through the **Create 
 - [User Guide](USER_GUIDE.md) — current user experience and conversation flow
 - [SCORM Integration](SCORM_INTEGRATION.md) — blockers, constraints, and final mitigation strategy
 - [Milestones](MILESTONES.md) — build tracker (7 phases, 46 milestones)
+- [Production Migration Milestones](PRODUCTION_MIGRATION_MILESTONES.md) — separate production deployment, validation, cutover, and operations tracker
 - [Implementation Dashboard](https://hernanacostaa.github.io/atlas-pa-studio/) — interactive GitHub Pages status view
 
 ## Status
