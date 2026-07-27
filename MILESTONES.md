@@ -10,6 +10,12 @@
 | Architecture | Copilot Studio + Power Automate (Zero Azure) |
 | Last Updated | **ALL 46/46 MILESTONES COMPLETE** — Phase 7 validated (July 25, 2026) |
 
+## Immediate Post-Build Action
+
+- [ ] Add a new PA row labeled **Media** and populate it with Media URLs extracted from the selected SCORM source file.
+
+This action is not included in the completed 46-milestone build baseline. Its full cross-component implementation checklist is tracked as **IA.1** in `PRODUCTION_MIGRATION_MILESTONES.md`.
+
 ---
 
 ## Phase 1: Prove the Core (Document Output)

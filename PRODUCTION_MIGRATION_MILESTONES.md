@@ -11,9 +11,9 @@ Development success does not automatically prove production readiness. A product
 | Metric | Value |
 |--------|-------|
 | Total phases | 12 |
-| Total production milestones | 156 |
+| Total production milestones | 157 |
 | Production milestones complete | 0 |
-| Current stage | Planning and inventory |
+| Current stage | Immediate Media field enhancement, then planning and inventory |
 | Last updated | July 27, 2026 |
 
 ## Status Legend
@@ -23,6 +23,31 @@ Development success does not automatically prove production readiness. A product
 - `[~]` In progress
 - `[!]` Blocked
 
+## Immediate Action Item: SCORM Media URLs
+
+> **Priority:** Immediate
+>
+> **Production impact:** Complete before the production baseline is frozen.
+
+- [ ] **IA.1** Add a new PA document row labeled **Media** and populate it with Media URLs found in the selected SCORM source file.
+
+**Current state:** The live PA contract has 17 extracted fields. Completing this action will add `Media` as the 18th extracted field.
+
+| Affected component | Required change |
+|--------------------|-----------------|
+| SCORM retrieval | Confirm the complete SCORM content passed into Create PA includes the original Media URLs without summarizing or rewriting them |
+| Field contract | Add a string field named `Media`; define ordering, duplicate handling, separator format, and missing-value behavior |
+| `ExtractPA` | Extract only Media URLs present in the source; never create or infer URLs |
+| `EditPA` | Preserve `Media` during unrelated edits and allow an explicit Media edit |
+| `FormatPreview` | Add a readable **Media** section to the chat preview |
+| PA Word template | Add a new table row labeled **Media** with a mapped Document Output placeholder |
+| `GeneratePA` | Add the `Media` input and map it to the new template row |
+| `ATLAS-PA-GenerateDoc` | Update Parse JSON and the `GeneratePA` action mapping to include `Media` |
+| Documentation | Update the PA data model from 17 to 18 fields only after the complete path is implemented |
+| Regression testing | Test one URL, multiple URLs, duplicates, no Media URL, malformed source text, edit preservation, clickable output, and end-to-end SCORM generation |
+
+**Acceptance criteria:** The selected SCORM file's Media URLs appear in the preview and in the generated Word document's **Media** row, unchanged from the source, with no invented links and no regression to the existing 17 fields.
+
 ## Complete Component Inventory
 
 | # | Component | Current role | Production evidence required |
@@ -31,12 +56,12 @@ Development success does not automatically prove production readiness. A product
 | 2 | Agent instructions | Search/read/route behavior and raw-content handoff | Exported instructions and routing tests |
 | 3 | Create PA topic | Deterministic extract-to-delivery pipeline | Production topic export and end-to-end tests |
 | 4 | System and conversation-ending topics | Welcome, fallback, close, create another | Channel tests without unwanted survey/escalation |
-| 5 | `ExtractPA` | 17-field grounded extraction | Model/config capture and quality tests |
-| 6 | `EditPA` | Updates current PA JSON | Multi-edit regression tests |
-| 7 | `FormatPreview` | Emoji-labeled readable preview | Cross-channel rendering tests |
-| 8 | `GeneratePA` | Document Output generation | Template mapping and generated-file tests |
-| 9 | PA Word template | Final document structure and formatting | Approved version, owner, placeholder inventory |
-| 10 | `ATLAS-PA-GenerateDoc` | Parse, generate, store, share, email, return URL | Production flow run history |
+| 5 | `ExtractPA` | Grounded field extraction, including pending `Media` expansion | Model/config capture and quality tests |
+| 6 | `EditPA` | Updates current PA JSON and must preserve `Media` | Multi-edit regression tests |
+| 7 | `FormatPreview` | Emoji-labeled readable preview, including `Media` | Cross-channel rendering tests |
+| 8 | `GeneratePA` | Document Output generation, including the `Media` mapping | Template mapping and generated-file tests |
+| 9 | PA Word template | Final document structure, including the pending **Media** row | Approved version, owner, placeholder inventory |
+| 10 | `ATLAS-PA-GenerateDoc` | Parse and map every PA field, then generate, store, share, email, and return URL | Production flow run history |
 | 11 | `SearchSCORM` backup flow | Retained backup search path | Exported, disabled/unused state documented, recovery test if retained |
 | 12 | SharePoint Knowledge source | Finds and reads SCORM Course Analysis reports | Production source configuration and retrieval tests |
 | 13 | Work IQ | Reads public and internal links | Production connection and link tests |
@@ -59,6 +84,7 @@ Development success does not automatically prove production readiness. A product
 | 30 | Support and escalation | Resolves user and platform incidents | Published support process |
 | 31 | Backup and rollback | Restores the last known good version | Tested export/import or rollback procedure |
 | 32 | Change and release management | Controls prompt, model, flow, and template updates | Versioning and approval record |
+| 33 | `Media` field enhancement | Carries Media URLs from the SCORM source through preview and Word output | IA.1 completion and Media regression evidence |
 
 ---
 
@@ -90,7 +116,7 @@ Development success does not automatically prove production readiness. A product
 - [ ] **1.5** Capture welcome, fallback, escalation, end-of-conversation, and survey settings
 - [ ] **1.6** Capture `ExtractPA`, `EditPA`, `FormatPreview`, and `GeneratePA` prompt configurations
 - [ ] **1.7** Record each prompt's model, moderation, inputs, outputs, and tool-availability setting
-- [ ] **1.8** Version the exact 17-field JSON schema and Parse JSON schema
+- [ ] **1.8** Version the current 17-field schema and the approved 18-field schema after `Media` action IA.1 is complete
 - [ ] **1.9** Version the approved PA Word template and all placeholder mappings
 - [ ] **1.10** Export `ATLAS-PA-GenerateDoc` and capture all expressions, branches, and timeout behavior
 - [ ] **1.11** Export the backup `SearchSCORM` flow and document that it is not in the current runtime path
@@ -134,7 +160,7 @@ Development success does not automatically prove production readiness. A product
 - [ ] **3.9** Configure and test Work IQ for public URLs
 - [ ] **3.10** Configure and test Work IQ for authorized internal Word and PDF links
 - [ ] **3.11** Test multiple-link and mixed SCORM-plus-notes retrieval
-- [ ] **3.12** Verify the orchestrator passes full raw content rather than a summary
+- [ ] **3.12** Verify the orchestrator passes full raw content, including Media URLs, rather than a summary
 
 **Gate:** Every advertised source path produces sufficient content for extraction.
 
@@ -146,7 +172,7 @@ Development success does not automatically prove production readiness. A product
 
 - [ ] **4.1** Import or recreate `ExtractPA`
 - [ ] **4.2** Confirm `ExtractPA` uses the approved model and moderation level
-- [ ] **4.3** Confirm all 17 field names match extraction, JSON, flow, and template mappings
+- [ ] **4.3** Confirm all approved field names, including `Media`, match extraction, JSON, flow, and template mappings
 - [ ] **4.4** Confirm field-by-field no-fabrication rules are intact
 - [ ] **4.5** Confirm ActivitySteps retains ordered, observable, source-specific actions
 - [ ] **4.6** Import or recreate `EditPA`
@@ -169,7 +195,7 @@ Development success does not automatically prove production readiness. A product
 
 - [ ] **5.1** Import `ATLAS-PA-GenerateDoc`
 - [ ] **5.2** Bind production Copilot Studio, SharePoint, and Outlook connection references
-- [ ] **5.3** Validate the Parse JSON schema against all 17 fields
+- [ ] **5.3** Validate the Parse JSON schema against every approved field, including `Media`
 - [ ] **5.4** Validate field mappings into `GeneratePA`
 - [ ] **5.5** Confirm the Document Output byte conversion expression uses `base64ToBinary`
 - [ ] **5.6** Create or approve the production PA output library/folder
@@ -265,7 +291,7 @@ Development success does not automatically prove production readiness. A product
 - [ ] **9.8** Test multiple public or internal links
 - [ ] **9.9** Test SCORM content plus supplemental user content
 - [ ] **9.10** Test empty, short, and nonsense input recovery
-- [ ] **9.11** Verify all 17 fields and fixed document labels
+- [ ] **9.11** Verify all approved fields, including `Media`, and fixed document labels
 - [ ] **9.12** Verify no unsupported facts or actions are invented
 - [ ] **9.13** Verify ActivitySteps specificity and source order
 - [ ] **9.14** Verify preview readability in every channel

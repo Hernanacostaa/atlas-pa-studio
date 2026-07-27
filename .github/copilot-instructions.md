@@ -66,6 +66,13 @@ DocumentationAndReferences, ActivitySteps, Validation, Notes
 **Fixed label**
 - `PA_DocumentLabel` = `Practical Activity Worksheet`
 
+## Immediate Pending Enhancement
+- Add `Media` as an 18th extracted field containing Media URLs found in the selected SCORM source
+- Add a new Word template row labeled **Media**
+- Update `ExtractPA`, `EditPA`, `FormatPreview`, `GeneratePA`, Parse JSON, flow mappings, tests, and documentation together
+- Do not describe `Media` as live until the complete path is implemented and validated
+- Canonical action item: `PRODUCTION_MIGRATION_MILESTONES.md` → **IA.1**
+
 ## Proven Formulas
 
 ### Document Output file bytes
